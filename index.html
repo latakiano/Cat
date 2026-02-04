@@ -3,162 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Cat: Global Edition</title>
+    <title>Himalayan Cat: Infinite Nightmare</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial', sans-serif; touch-action: none; }
+        :root { --neon: #00f2ff; --premium-bg: rgba(15, 15, 25, 0.85); }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; color: white; }
         
-        /* واجهة اللعبة */
-        #ui { position: absolute; top: 15px; width: 100%; display: flex; justify-content: space-around; z-index: 100; pointer-events: none; }
-        .stat-item { background: rgba(0, 0, 0, 0.7); border: 1.5px solid #00f2ff; padding: 8px 15px; border-radius: 12px; color: #fff; font-weight: bold; box-shadow: 0 0 10px rgba(0, 242, 255, 0.3); }
+        /* واجهة UI عالمية - Glassmorphism */
+        #ui { 
+            position: absolute; top: 20px; width: 100%; 
+            display: flex; justify-content: space-around; z-index: 100; pointer-events: none; 
+        }
+        .stat-card { 
+            background: var(--premium-bg); border: 1px solid var(--neon);
+            backdrop-filter: blur(10px); padding: 10px 25px; border-radius: 50px;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); font-weight: 900; font-size: 18px;
+        }
 
-        /* الشاشات المنبثقة */
-        #overlay, #shop { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; color: #fff; text-align: center; }
-        #shop { display: none; background: radial-gradient(circle, #1a0033 0%, #000 100%); }
+        /* الشاشات المنبثقة بتصميم سينمائي */
+        .screen {
+            position: fixed; inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 1000;
+            background: radial-gradient(circle at center, #1a0033 0%, #000 100%);
+            transition: 0.5s;
+        }
+        h1 { font-size: 3rem; text-transform: uppercase; letter-spacing: 5px; text-shadow: 0 0 30px var(--neon); margin-bottom: 10px; }
+        
+        .btn {
+            padding: 18px 50px; font-size: 22px; background: linear-gradient(45deg, #00f2ff, #0062ff);
+            border: none; border-radius: 50px; color: #fff; cursor: pointer; font-weight: bold;
+            box-shadow: 0 10px 20px rgba(0, 242, 255, 0.4); transition: 0.3s; margin: 10px;
+        }
+        .btn:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 15px 30px var(--neon); }
+        .btn-shop { background: linear-gradient(45deg, #ffae00, #ff4500); box-shadow: 0 10px 20px rgba(255, 69, 0, 0.4); }
 
-        .btn { padding: 15px 40px; font-size: 20px; background: linear-gradient(45deg, #00f2ff, #0062ff); color: #fff; border: none; cursor: pointer; border-radius: 30px; margin: 10px; transition: 0.3s; font-weight: bold; }
-        .btn-shop { background: linear-gradient(45deg, #ffae00, #ff4500); }
-        .btn:hover { transform: scale(1.05); }
-
-        .item-card { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin: 10px; border: 1px solid #ffae00; width: 250px; }
+        /* المتجر الفاخر */
+        #shop { display: none; }
+        .shop-grid { display: flex; gap: 20px; margin: 30px; }
+        .item { 
+            background: rgba(255,255,255,0.05); padding: 25px; border-radius: 20px; 
+            border: 1px solid rgba(255,255,255,0.1); width: 200px; text-align: center;
+            transition: 0.3s;
+        }
+        .item:hover { background: rgba(255,255,255,0.1); border-color: var(--neon); }
+        .price { color: #ffae00; font-size: 24px; font-weight: bold; display: block; margin: 15px 0; }
     </style>
 </head>
 <body>
 
 <div id="ui">
-    <div class="stat-item"><span id="txt-lvl">المرحلة</span>: <span id="lvlText">1</span></div>
-    <div class="stat-item">💰 <span id="coinText">0</span></div>
+    <div class="stat-card">💀 <span id="txt-lvl">المرحلة</span> <span id="lvlNum">1</span></div>
+    <div class="stat-card">💰 <span id="coinText">0</span></div>
 </div>
 
-<div id="overlay">
-    <h1 id="txt-title" style="font-size: 40px; color: #00f2ff;">كابوس الهملايا 🐈</h1>
-    <button class="btn" onclick="initGame()" id="txt-start">دخول المعركة</button>
-    <button class="btn btn-shop" onclick="toggleShop(true)" id="txt-open-shop">المتجر (0.30$)</button>
+<div id="startScreen" class="screen">
+    <h1 id="title">HIMALAYAN NIGHTMARE</h1>
+    <p id="subtitle" style="color: #888; margin-bottom: 30px;">20 STAGES OF PURE HORROR</p>
+    <button class="btn" onclick="startGame()">ENTER THE HELL</button>
+    <button class="btn btn-shop" onclick="openShop()">UPGRADES (0.30$)</button>
 </div>
 
-<div id="shop">
-    <h1 id="txt-shop-title">متجر التطويرات 🛒</h1>
-    <div style="display: flex; flex-wrap: wrap; justify-content: center;">
-        <div class="item-card">
-            <h3>قطة سوبر 🐾</h3>
-            <p>قفزة أعلى وسرعة أكبر</p>
-            <button class="btn btn-shop" onclick="buyItem('cat')">0.30 $</button>
+<div id="shop" class="screen">
+    <h1>ARMORY</h1>
+    <div class="shop-grid">
+        <div class="item">
+            <h3>SUPER CAT</h3>
+            <p>Higher Jump & Speed</p>
+            <span class="price">0.30 $</span>
+            <button class="btn" style="padding: 10px 20px; font-size: 14px;" onclick="buy('cat')">BUY NOW</button>
         </div>
-        <div class="item-card">
-            <h3>سلاح الليزر 🔫</h3>
-            <p>تدمير العوائق تلقائياً</p>
-            <button class="btn btn-shop" onclick="buyItem('weapon')">0.30 $</button>
+        <div class="item">
+            <h3>LASER GUN</h3>
+            <p>Destroy Obstacles</p>
+            <span class="price">0.30 $</span>
+            <button class="btn" style="padding: 10px 20px; font-size: 14px;" onclick="buy('gun')">BUY NOW</button>
         </div>
     </div>
-    <button class="btn" onclick="toggleShop(false)">إغلاق</button>
+    <button class="btn" style="background: #333;" onclick="closeShop()">BACK</button>
 </div>
 
 <canvas id="gameCanvas"></canvas>
 
 <script>
     const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
-    
-    // --- نظام اللغات ---
-    const lang = navigator.language.startsWith('ar') ? 'ar' : 'en';
-    const texts = {
-        ar: { title: "كابوس الهملايا 🐈", start: "دخول المعركة", shop: "المتجر (0.30$)", lvl: "المرحلة", shopTitle: "متجر التطويرات" },
-        en: { title: "Himalayan Nightmare 🐈", start: "Start Game", shop: "Shop ($0.30)", lvl: "Level", shopTitle: "Upgrades Shop" }
-    };
-    document.getElementById('txt-title').innerText = texts[lang].title;
-    document.getElementById('txt-start').innerText = texts[lang].start;
-    document.getElementById('txt-open-shop').innerText = texts[lang].shop;
-    document.getElementById('txt-lvl').innerText = texts[lang].lvl;
-    document.getElementById('txt-shop-title').innerText = texts[lang].shopTitle;
+    let audioCtx;
 
-    // --- الإعدادات والمراحل ---
+    // --- محرك الصوت (تمت إعادته بقوة) ---
+    function playSfx(type) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+        if (type === 'jump') { osc.frequency.setValueAtTime(400, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); }
+        else if (type === 'roar') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, audioCtx.currentTime); shake = 15; gain.gain.setValueAtTime(0.3, audioCtx.currentTime); }
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+    }
+
     const assets = {
         cat: 'https://img.icons8.com/color/96/cat--v1.png',
         catSuper: 'https://img.icons8.com/color/96/cat-mask.png',
         wolf: 'https://img.icons8.com/color/150/werewolf.png',
         ghost: 'https://img.icons8.com/color/150/grim-reaper.png',
-        dragon: 'https://img.icons8.com/color/150/dragon.png',
-        lion: 'https://img.icons8.com/color/150/lion.png'
+        lion: 'https://img.icons8.com/color/150/lion.png',
+        dragon: 'https://img.icons8.com/color/150/dragon.png'
     };
     const imgObj = {}; Object.keys(assets).forEach(k => { imgObj[k] = new Image(); imgObj[k].src = assets[k]; });
 
-    const STAGES = Array.from({length: 20}, (_, i) => ({
-        type: ['wolf', 'ghost', 'lion', 'dragon'][i % 4],
-        neon: ['#00f2ff', '#ff0055', '#ffae00', '#7a00ff'][i % 4],
-        speed: 7 + (i * 0.5)
-    }));
-
-    let curStage = 0, distance = 1000, active = false, started = false, score = 0;
-    let p = { x: 120, y: 0, v: 0, power: 1 }, m = { x: -300, y: 0 };
-    let obstacles = [], coins = [], hasWeapon = false;
-
-    function initGame() {
-        document.getElementById('overlay').style.display = 'none';
-        distance = 1000; p.y = canvas.height / 2; p.v = 0; m.x = -300;
-        obstacles = []; coins = []; active = true; started = false;
-        document.getElementById('lvlText').innerText = curStage + 1;
+    // لغات العالم
+    const isAr = navigator.language.startsWith('ar');
+    if (isAr) {
+        document.getElementById('title').innerText = "كابوس الهملايا";
+        document.getElementById('subtitle').innerText = "20 مرحلة من الرعب الخالص";
+        document.querySelector('[onclick="startGame()"]').innerText = "دخول المعركة";
+        document.querySelector('[onclick="openShop()"]').innerText = "المتجر (0.30$)";
+        document.getElementById('txt-lvl').innerText = "المرحلة";
     }
 
-    function toggleShop(show) { document.getElementById('shop').style.display = show ? 'flex' : 'none'; }
+    let stages = Array.from({length: 20}, (_, i) => ({
+        type: ['wolf', 'ghost', 'lion', 'dragon'][i % 4],
+        color: ['#00f2ff', '#ff0055', '#ffae00', '#9d00ff'][i % 4],
+        speed: 7 + (i * 0.4)
+    }));
 
-    function buyItem(type) {
-        alert("سعر السلعة 0.30 دولار (تواصل مع المطور لربط بوابة الدفع)");
-        if(type === 'cat') p.power = 1.5;
-        if(type === 'weapon') hasWeapon = true;
-        toggleShop(false);
+    let curLvl = 0, score = 0, active = false, started = false, shake = 0;
+    let p = { x: 120, y: 0, v: 0, super: false, gun: false }, m = { x: -300, y: 0 };
+    let obstacles = [], coins = [];
+
+    function startGame() {
+        document.getElementById('startScreen').style.display = 'none';
+        p.y = canvas.height / 2; p.v = 0; m.x = -300;
+        obstacles = []; coins = []; active = true; started = false;
+        document.getElementById('lvlNum').innerText = curLvl + 1;
+    }
+
+    function openShop() { document.getElementById('shop').style.display = 'flex'; }
+    function closeShop() { document.getElementById('shop').style.display = 'none'; }
+    function buy(item) { 
+        alert(isAr ? "تحويل لصفحة الدفع (0.30$)..." : "Redirecting to Payment (0.30$)..."); 
+        if(item === 'cat') p.super = true; if(item === 'gun') p.gun = true;
+        closeShop();
     }
 
     function gameLoop() {
-        let s = STAGES[curStage];
-        ctx.fillStyle = "#050505"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        let s = stages[curLvl];
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // خلفية ضبابية
+        ctx.fillStyle = '#05050a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         if (active && started) {
-            p.v += 0.5; p.y += p.v; distance -= 0.5;
-            m.y += (p.y - m.y) * 0.05; m.x = Math.min(p.x - 140, m.x + 0.3);
+            p.v += 0.5; p.y += p.v; 
+            m.y += (p.y - m.y) * 0.05; m.x = Math.min(p.x - 140, m.x + 0.35);
 
-            // توليد عوائق وجوائز
-            if (Math.random() < 0.02) {
-                obstacles.push({ x: canvas.width, y: Math.random()*(canvas.height-300)+100, h: 250 });
-            }
-            if (Math.random() < 0.03) {
-                coins.push({ x: canvas.width, y: Math.random()*canvas.height });
+            // تحسين المسافات بين الأعمدة
+            if (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 450) {
+                if (Math.random() < 0.02) {
+                    obstacles.push({ x: canvas.width, y: Math.random()*(canvas.height-350)+100, h: 280 });
+                }
             }
 
-            // معالجة العوائق (تخفيف الإضاءة عبر شفافية النيون)
+            // الجوائز (متوازنة)
+            if (Math.random() < 0.01) coins.push({ x: canvas.width, y: Math.random()*canvas.height });
+
             obstacles.forEach((o, i) => {
                 o.x -= s.speed;
-                ctx.fillStyle = s.neon; ctx.globalAlpha = 0.6; // تخفيف الإضاءة
-                ctx.fillRect(o.x, 0, 50, o.y); ctx.fillRect(o.x, o.y + o.h, 50, canvas.height);
-                ctx.globalAlpha = 1.0;
+                ctx.fillStyle = s.color; ctx.globalAlpha = 0.4; // إضاءة هادئة
+                ctx.fillRect(o.x, 0, 40, o.y); ctx.fillRect(o.x, o.y + o.h, 40, canvas.height);
+                ctx.globalAlpha = 1;
                 
-                if (hasWeapon && Math.abs(p.x - o.x) < 100) obstacles.splice(i, 1); // السلاح يدمر العوائق
-                if (p.x + 40 > o.x && p.x < o.x + 50 && (p.y < o.y || p.y + 40 > o.y + o.h)) active = false;
+                // سلاح الليزر
+                if (p.gun && Math.abs(p.x - o.x) < 150) {
+                    ctx.strokeStyle = '#00f2ff'; ctx.lineWidth = 5;
+                    ctx.beginPath(); ctx.moveTo(p.x+50, p.y+30); ctx.lineTo(o.x, o.y + o.h/2); ctx.stroke();
+                    obstacles.splice(i, 1);
+                }
+
+                if (p.x + 40 > o.x && p.x < o.x + 40 && (p.y < o.y || p.y + 40 > o.y + o.h)) die();
             });
 
-            // معالجة الجوائز
             coins.forEach((c, i) => {
                 c.x -= s.speed;
-                ctx.font = "25px Arial"; ctx.fillText("💰", c.x, c.y);
-                if (Math.hypot(p.x - c.x, p.y - c.y) < 40) { score += 10; coins.splice(i, 1); }
+                ctx.font = "24px Arial"; ctx.fillText("💰", c.x, c.y);
+                if (Math.hypot(p.x - c.x, p.y - c.y) < 40) { score += 5; coins.splice(i, 1); }
             });
 
-            if (p.y > canvas.height || p.y < -50 || p.x < m.x + 50) active = false;
-            if (!active) document.getElementById('overlay').style.display = 'flex';
+            if (p.y > canvas.height || p.x < m.x + 60) die();
             document.getElementById('coinText').innerText = score;
         }
 
-        // --- رسم الوحش (بدون دائرة، وبإتجاه القطة) ---
+        // --- رسم الوحش (شبه 3D، يواجه القطة، بدون دائرة) ---
+        let breath = Math.sin(Date.now() / 200) * 8;
         ctx.save();
-        ctx.translate(m.x + 150, m.y);
-        ctx.scale(-1, 1); // قلب الصورة لتواجه اليمين (القطة)
-        ctx.drawImage(imgObj[s.type], 0, 0, 150, 150);
+        ctx.translate(m.x + 150, m.y + breath);
+        ctx.scale(-1, 1); // يواجه القطة دائماً
+        ctx.shadowBlur = 20; ctx.shadowColor = s.color;
+        ctx.drawImage(imgObj[s.type], 0, 0, 160 + breath, 160 - breath);
         ctx.restore();
 
-        // رسم القطة (عادية أو مطورة)
-        ctx.drawImage(p.power > 1 ? imgObj.catSuper : imgObj.cat, p.x, p.y, 70, 70);
+        // رسم القطة
+        ctx.drawImage(p.super ? imgObj.catSuper : imgObj.cat, p.x, p.y, 75, 75);
 
         requestAnimationFrame(gameLoop);
     }
 
-    const jump = () => { if (active) { started = true; p.v = -8 * p.power; } }
+    function die() { 
+        active = false; playSfx('roar'); 
+        document.getElementById('startScreen').style.display = 'flex';
+        document.getElementById('title').innerText = isAr ? "سحقتك الوحوش!" : "YOU DIED!";
+    }
+
+    const jump = () => { if (active) { started = true; p.v = p.super ? -11 : -9; playSfx('jump'); } }
     window.onmousedown = jump; window.ontouchstart = jump;
     window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
     window.onresize();
