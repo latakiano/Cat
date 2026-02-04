@@ -1,29 +1,33 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Cat: Global Journey</title>
+    <title>Himalayan Cat: Dungeon Legends</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; touch-action: none; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; }
         #ui { position: absolute; top: 15px; width: 100%; display: flex; justify-content: space-around; z-index: 100; pointer-events: none; }
-        .stat-item { background: rgba(0, 0, 0, 0.7); border: 2px solid #fff; padding: 10px 20px; border-radius: 15px; color: #fff; font-weight: bold; box-shadow: 0 0 15px rgba(255,255,255,0.2); font-size: 20px; }
-        #overlay { position: fixed; inset: 0; background: radial-gradient(circle, #111 0%, #000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; color: #fff; text-align: center; }
-        .btn { padding: 15px 50px; font-size: 25px; background: linear-gradient(45deg, #ffd700, #ff8c00); color: #000; border: none; cursor: pointer; border-radius: 50px; font-weight: bold; box-shadow: 0 0 20px #ffd700; transition: 0.3s; margin-top: 20px; }
+        .stat-card { background: rgba(0, 0, 0, 0.75); border: 2px solid #ffd700; padding: 10px 20px; border-radius: 20px; color: #fff; font-weight: bold; box-shadow: 0 0 15px rgba(255,215,0,0.3); font-size: clamp(14px, 4vw, 20px); text-align: center; }
+        
+        /* واجهة البداية */
+        #overlay, #shop { position: fixed; inset: 0; background: radial-gradient(circle, #1a0033 0%, #000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; color: #fff; text-align: center; padding: 20px; }
+        .btn { padding: 15px 40px; font-size: 22px; background: linear-gradient(45deg, #ffd700, #ff8c00); color: #000; border: none; cursor: pointer; border-radius: 50px; font-weight: bold; box-shadow: 0 0 20px #ffd700; transition: 0.3s; margin-top: 15px; }
         .btn:hover { transform: scale(1.1); }
+        .btn-shop { background: linear-gradient(45deg, #00f2ff, #0062ff); color: white; box-shadow: 0 0 20px #00f2ff; }
     </style>
 </head>
 <body>
 
 <div id="ui">
-    <div class="stat-item">🌍 <span id="cityName">LONDON</span></div>
-    <div class="stat-item">💰 <span id="coinText">0</span></div>
+    <div class="stat-card">🏰 <span id="adventureName">Dungeon</span></div>
+    <div class="stat-card">💰 <span id="coinText">0</span></div>
 </div>
 
 <div id="overlay">
-    <h1 id="mainMsg" style="font-size: 50px; text-shadow: 0 0 20px #ffd700;">HIMALAYAN WORLD TOUR</h1>
-    <p id="subMsg" style="font-size: 20px; color: #aaa;">Collect coins and reach LATAKIA!</p>
-    <button class="btn" onclick="initGame()">START JOURNEY 🚀</button>
+    <h1 id="mainTitle" style="font-size: 45px; text-shadow: 0 0 20px #ffd700;">HIMALAYAN LEGENDS</h1>
+    <p id="subTitle" style="font-size: 18px; color: #ccc;">20 Dungeons to Conquer</p>
+    <button class="btn" onclick="initGame()" id="startBtn">START ADVENTURE</button>
+    <button class="btn btn-shop" onclick="alert('Price: 0.30$ - Opening Secure Payment...')" id="shopBtn">UPGRADE CAT (0.30$)</button>
 </div>
 
 <canvas id="gameCanvas"></canvas>
@@ -32,128 +36,110 @@
     const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
     let audioCtx;
 
-    // --- نظام الصوت المطور ---
-    function playSound(type) {
+    // --- نظام الترجمة التلقائي ---
+    const userLang = navigator.language.startsWith('ar') ? 'ar' : 'en';
+    const dict = {
+        ar: { prefix: "مغامرة دهليز", start: "بدء المغامرة", shop: "تطوير القطة (0.30$)", death: "سحقتك الوحوش!", retry: "إعادة المحاولة" },
+        en: { prefix: "Dungeon Adventure of", start: "START ADVENTURE", shop: "UPGRADE CAT (0.30$)", death: "DEFEATED!", retry: "RETRY" }
+    };
+    const t = dict[userLang];
+
+    // --- نظام الصوت ---
+    function playSfx(type) {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
-        
-        if (type === 'jump') {
-            osc.type = 'triangle'; osc.frequency.setValueAtTime(450, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        } else if (type === 'coin') {
-            osc.type = 'sine'; osc.frequency.setValueAtTime(900, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        } else if (type === 'die') {
-            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        }
-
+        if (type === 'jump') { osc.frequency.setValueAtTime(400, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); }
+        else if (type === 'coin') { osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); }
+        else { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, audioCtx.currentTime); gain.gain.setValueAtTime(0.3, audioCtx.currentTime); }
         osc.connect(gain).connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
     }
 
-    // --- تعريف المراحل (20 مرحلة) ---
-    const STAGES = [
-        { name: "LONDON", col: "#FFFF00" },      // 1 صفراء
-        { name: "NEW YORK", col: "#0000FF" },    // 2 زرقاء
-        { name: "PARIS", col: "#FF0000" },       // 3 حمراء
-        { name: "BERLIN", col: "#00FF00" },      // 4 خضراء
-        { name: "AMSTERDAM", col: "#FFFFFF" },   // 5 بيضاء (ثلجية)
-        { name: "BEIJING", col: "#4da6ff" },     // 6 زرقاء فاتحة
-        { name: "ROME", col: "#8B4513" },        // 7 بني
-        { name: "MOSCOW", col: "#800000" },      // 8 خمري
-        { name: "ATHENS", col: "#800080" },      // 9 موف
-        { name: "BUCHAREST", col: "#000080" },   // 10 كحلي
-        { name: "TOKYO", col: "#FF4500" },
-        { name: "DUBAI", col: "#FFD700" },
-        { name: "CAIRO", col: "#C0C0C0" },
-        { name: "MADRID", col: "#32CD32" },
-        { name: "SYDNEY", col: "#1E90FF" },
-        { name: "RIO", col: "#FF69B4" },
-        { name: "SEOUL", col: "#00CED1" },
-        { name: "ISTANBUL", col: "#A52A2A" },
-        { name: "PRAGUE", col: "#556B2F" },
-        { name: "LATAKIA", col: "#00f2ff" }      // الأخيرة
-    ];
+    // --- إعداد المراحل الـ 20 ---
+    const cities = ["London", "New York", "Paris", "Berlin", "Amsterdam", "Beijing", "Rome", "Moscow", "Athens", "Bucharest", "Tokyo", "Dubai", "Cairo", "Madrid", "Sydney", "Rio", "Seoul", "Istanbul", "Prague", "Latakia"];
+    const colors = ["#FFFF00", "#0000FF", "#FF0000", "#00FF00", "#FFFFFF", "#00FFFF", "#8B4513", "#800000", "#800080", "#000080", "#FF4500", "#FFD700", "#C0C0C0", "#32CD32", "#1E90FF", "#FF69B4", "#00CED1", "#A52A2A", "#556B2F", "#00f2ff"];
+    
+    const STAGES = cities.map((city, i) => ({
+        name: `${t.prefix} ${city}`,
+        col: colors[i],
+        monster: i === 19 ? 'lion' : ['wolf', 'ghost', 'dragon', 'wolf'][i % 4],
+        speed: 6 + (i * 0.4)
+    }));
 
     const assets = {
         cat: 'https://img.icons8.com/color/96/cat--v1.png',
-        wolf: 'https://img.icons8.com/fluency/150/werewolf.png', // صور شفافة بدون دوائر
+        coin: 'https://img.icons8.com/color/48/gold-pot.png',
+        wolf: 'https://img.icons8.com/fluency/150/werewolf.png',
         ghost: 'https://img.icons8.com/fluency/150/ghost.png',
-        lion: 'https://img.icons8.com/fluency/150/lion.png',
-        dragon: 'https://img.icons8.com/fluency/150/dragon.png'
+        dragon: 'https://img.icons8.com/fluency/150/dragon.png',
+        lion: 'https://img.icons8.com/fluency/150/lion.png'
     };
     const imgObj = {}; Object.keys(assets).forEach(k => { imgObj[k] = new Image(); imgObj[k].src = assets[k]; });
 
     let curStage = 0, score = 0, active = false, started = false;
     let p = { x: 130, y: 0, v: 0 }, m = { x: -300, y: 0 };
-    let obstacles = [], coins = [], distanceToNext = 1500;
+    let obstacles = [], coins = [], dist = 1500;
 
     function initGame() {
         document.getElementById('overlay').style.display = 'none';
         p.y = canvas.height / 2; p.v = 0; m.x = -300;
-        obstacles = []; coins = []; active = true; started = false; distanceToNext = 1500;
-        document.getElementById('cityName').innerText = STAGES[curStage].name;
+        obstacles = []; coins = []; dist = 1500; active = true; started = false;
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('adventureName').innerText = STAGES[curStage].name;
+        document.getElementById('startBtn').innerText = t.start;
+        document.getElementById('shopBtn').innerText = t.shop;
     }
 
     function gameLoop() {
         let s = STAGES[curStage];
-        ctx.fillStyle = "#050505"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#0a0a0f"; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         if (active && started) {
-            p.v += 0.52; p.y += p.v; 
-            m.y += (p.y - m.y) * 0.05; m.x = Math.min(p.x - 150, m.x + 0.35);
-            distanceToNext -= 1;
+            p.v += 0.5; p.y += p.v; 
+            m.y += (p.y - m.y) * 0.05; m.x = Math.min(p.x - 140, m.x + 0.3);
+            dist -= 1;
 
-            if (distanceToNext <= 0 && curStage < 19) {
-                curStage++; distanceToNext = 1500;
-                document.getElementById('cityName').innerText = STAGES[curStage].name;
+            if (dist <= 0 && curStage < 19) { curStage++; dist = 1500; updateUI(); }
+
+            // الأعمدة (متباعدة كما طلبت)
+            if (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 550) {
+                obstacles.push({ x: canvas.width, y: Math.random()*(canvas.height-400)+100, h: 280 });
             }
 
-            // توليد عوائق (أعمدة متباعدة)
-            if (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 500) {
-                if (Math.random() < 0.02) {
-                    obstacles.push({ x: canvas.width, y: Math.random()*(canvas.height-400)+100, h: 280 });
-                }
-            }
-
-            // توليد عملات (قليلة ومتوازنة)
-            if (Math.random() < 0.005) {
-                coins.push({ x: canvas.width, y: Math.random()*(canvas.height-100)+50 });
-            }
+            // الجوائز (متوازنة)
+            if (Math.random() < 0.01) coins.push({ x: canvas.width, y: Math.random()*(canvas.height-100)+50 });
 
             obstacles.forEach((o, i) => {
-                o.x -= 7 + (curStage * 0.3);
-                // رسم العمود
-                ctx.fillStyle = s.col; ctx.globalAlpha = 0.7;
-                ctx.fillRect(o.x, 0, 60, o.y); 
-                ctx.fillRect(o.x, o.y + o.h, 60, canvas.height);
+                o.x -= s.speed;
+                ctx.fillStyle = s.col; ctx.globalAlpha = 0.6;
+                ctx.fillRect(o.x, 0, 50, o.y); ctx.fillRect(o.x, o.y+o.h, 50, canvas.height);
                 
                 // كتابة اسم المدينة على العمود
-                ctx.globalAlpha = 1; ctx.fillStyle = "#fff"; ctx.font = "bold 14px Arial";
-                ctx.save(); ctx.translate(o.x + 35, o.y - 20); ctx.rotate(-Math.PI/2);
-                ctx.fillText(s.name, 0, 0); ctx.restore();
+                ctx.globalAlpha = 1; ctx.fillStyle = "#fff"; ctx.font = "bold 12px Arial";
+                ctx.fillText(cities[curStage], o.x + 5, o.y - 10);
 
-                if (p.x + 45 > o.x && p.x + 10 < o.x + 60 && (p.y < o.y || p.y + 45 > o.y + o.h)) die();
+                if (p.x + 40 > o.x && p.x < o.x + 50 && (p.y < o.y || p.y + 45 > o.y + o.h)) die();
             });
 
             coins.forEach((c, i) => {
-                c.x -= 7;
-                ctx.font = "30px Arial"; ctx.fillText("💰", c.x, c.y);
-                if (Math.hypot(p.x - c.x, p.y - c.y) < 50) { score += 50; coins.splice(i, 1); playSound('coin'); }
+                c.x -= s.speed;
+                ctx.drawImage(imgObj.coin, c.x, c.y, 40, 40);
+                if (Math.hypot(p.x - c.x, p.y - c.y) < 50) { score += 10; coins.splice(i, 1); playSfx('coin'); }
             });
 
-            if (p.y > canvas.height || p.y < -50 || p.x < m.x + 70) die();
+            if (p.y > canvas.height || p.x < m.x + 70) die();
             document.getElementById('coinText').innerText = score;
         }
 
-        // --- رسم الوحش (الاتجاه صحيح تماماً وبدون دوائر) ---
-        let monsterType = ['wolf', 'ghost', 'lion', 'dragon'][Math.floor(curStage/5) % 4];
+        // --- رسم الوحش (يواجه القطة وبدون دوائر) ---
         ctx.save();
-        ctx.translate(m.x + 160, m.y); 
-        ctx.scale(-1, 1); // قلب الوحش لينظر لليمين (باتجاه القطة)
-        ctx.drawImage(imgObj[monsterType], 0, 0, 160, 160);
+        ctx.translate(m.x + 150, m.y); 
+        ctx.scale(-1, 1); // قلب الاتجاه نحو القطة
+        ctx.shadowBlur = 15; ctx.shadowColor = s.col;
+        ctx.drawImage(imgObj[s.monster], 0, 0, 160, 160);
         ctx.restore();
 
         // رسم القطة
@@ -163,19 +149,13 @@
     }
 
     function die() {
-        active = false; playSound('die');
+        active = false; playSfx('die');
         document.getElementById('overlay').style.display = 'flex';
-        document.getElementById('mainMsg').innerText = "GAME OVER";
-        document.getElementById('subMsg').innerText = "Score: " + score + " | City: " + STAGES[curStage].name;
+        document.getElementById('mainTitle').innerText = t.death;
+        document.getElementById('startBtn').innerText = t.retry;
     }
 
-    function jump() { 
-        if (active) { 
-            if(!started) started = true;
-            p.v = -9.5; playSound('jump'); 
-        } 
-    }
-    
+    const jump = () => { if (active) { started = true; p.v = -9.2; playSfx('jump'); } }
     window.onmousedown = jump; window.ontouchstart = (e) => { e.preventDefault(); jump(); };
     window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
     window.onresize();
