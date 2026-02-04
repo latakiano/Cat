@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HIMALAYAN LEGENDS - THE FINAL HOPE</title>
+    <title>Himalayan Legends: Cat Savior Edition</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial', sans-serif; touch-action: none; color: white; }
+        body { margin: 0; overflow: hidden; background: #050508; font-family: 'Arial', sans-serif; touch-action: none; color: white; }
         #ui { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; z-index: 100; pointer-events: none; }
-        .stat { background: rgba(0,0,0,0.8); border: 2px solid #ffd700; padding: 5px 15px; border-radius: 15px; font-weight: bold; }
-        .screen { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; border: 5px solid #333; }
-        .btn { padding: 20px 60px; font-size: 25px; background: gold; border: none; border-radius: 50px; color: #000; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        .stat { background: rgba(0,0,0,0.8); border: 2px solid #ffd700; padding: 5px 15px; border-radius: 15px; font-weight: bold; font-size: 14px; }
+        
+        /* شاشات اللعبة */
+        .screen { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; }
+        .btn { padding: 15px 40px; font-size: 20px; background: gold; border: none; border-radius: 50px; color: #000; cursor: pointer; font-weight: bold; margin: 10px; box-shadow: 0 5px 15px gold; }
+        .btn-shop { background: #00f2ff; box-shadow: 0 5px 15px #00f2ff; }
+        
+        #canvas { display: block; width: 100vw; height: 100vh; }
     </style>
 </head>
 <body>
@@ -17,100 +22,152 @@
 <div id="ui">
     <div class="stat">🏰 <span id="loc">LONDON</span></div>
     <div class="stat">💰 <span id="scr">0</span></div>
+    <div class="stat">⚡ <span id="lvl">CAT Lvl 1</span></div>
 </div>
 
 <div id="startScreen" class="screen">
-    <h1 style="color: gold; font-size: 40px; margin: 0;">لعبة القطة الهملايا</h1>
-    <p style="font-size: 20px;">اضغط على الزر لتبدأ المغامرة فوراً</p>
-    <button class="btn" onclick="start()">ابدأ اللعب الآن</button>
+    <h1 style="color: gold; margin-bottom: 5px;">مُنقذ القطط الأسطوري</h1>
+    <p id="msg">لديك 45 قطة تنتظرك.. اجمع الذهب لتطويرهم!</p>
+    <button class="btn" onclick="start()">بدء المغامرة</button>
+    <button class="btn btn-shop" id="upgradeBtn" onclick="upgradeCat()">تطوير القطة (Cost: 50$)</button>
 </div>
 
 <canvas id="canvas"></canvas>
 
 <script>
 const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+let gameActive = false, score = 0, catLevel = 1, coinsToNextLevel = 50;
+let curStage = 0, dist = 0;
 
-// --- بيانات القطة والوحوش (مرسومة برمجياً لضمان الظهور) ---
-let game = { active: false, score: 0, cur: 0, dist: 0 };
-let p = { x: 100, y: 300, v: 0, w: 60, h: 50 }; // القطة
-let m = { x: -150, y: 300 }; // الوحش
+// إعدادات الشاشة لتناسب العرض والطول
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.onresize = resize;
+resize();
+
+let p = { x: 80, y: 0, v: 0, gravity: 0.5, jump: -9 };
+let monster = { x: -200, y: 0, size: 80 };
 let obs = [], coins = [];
-const cities = ["LONDON", "PARIS", "BERLIN", "ROME", "AMSTERDAM", "TOKYO", "DUBAI", "CAIRO", "MADRID", "LATAKIA"];
 
-function drawCat(x, y) {
-    // رسم القطة (جسم أبيض، عيون زرقاء، أذنين بنية)
-    ctx.fillStyle = "white";
-    ctx.beginPath(); ctx.ellipse(x+30, y+25, 25, 18, 0, 0, Math.PI*2); ctx.fill(); // الجسم
-    ctx.beginPath(); ctx.arc(x+50, y+15, 12, 0, Math.PI*2); ctx.fill(); // الرأس
-    ctx.fillStyle = "#5D4037"; // بني للأذنين
-    ctx.beginPath(); ctx.moveTo(x+45, y+5); ctx.lineTo(x+42, y-5); ctx.lineTo(x+50, y+2); ctx.fill();
-    ctx.fillStyle = "blue"; // عيون زرقاء
-    ctx.beginPath(); ctx.arc(x+55, y+12, 2, 0, Math.PI*2); ctx.fill();
+const stages = ["LONDON", "PARIS", "ROME", "DUBAI", "LATAKIA"];
+const colors = ["#ffd700", "#ff4500", "#00f2ff", "#7fff00", "#ffffff"];
+
+function drawCat(x, y, level) {
+    ctx.save();
+    ctx.translate(x, y);
+    // تغيير لون القطة حسب المستوى
+    let catColor = level === 1 ? "white" : (level === 2 ? "#f0f0f0" : "#ffd700");
+    let eyeColor = level >= 3 ? "red" : "blue";
+    
+    // الجسم
+    ctx.fillStyle = catColor;
+    ctx.beginPath(); ctx.ellipse(30, 30, 25, 18, 0, 0, Math.PI*2); ctx.fill();
+    // الرأس
+    ctx.beginPath(); ctx.arc(50, 20, 15, 0, Math.PI*2); ctx.fill();
+    // الأذنين
+    ctx.fillStyle = "#5D4037";
+    ctx.beginPath(); ctx.moveTo(45, 10); ctx.lineTo(40, 0); ctx.lineTo(50, 5); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(55, 10); ctx.lineTo(60, 0); ctx.lineTo(50, 5); ctx.fill();
+    // العيون
+    ctx.fillStyle = eyeColor;
+    ctx.beginPath(); ctx.arc(55, 18, 3, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
 }
 
 function drawMonster(x, y) {
-    // رسم الوحش (لون أحمر غامق)
-    ctx.fillStyle = game.cur === 9 ? "orange" : "red"; // برتقالي في اللاذقية (الأسد)
-    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+80, y+30); ctx.lineTo(x, y+60); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(x+60, y+30, 5, 0, Math.PI*2); ctx.fill();
+    ctx.save();
+    ctx.translate(x, y);
+    // جسم الوحش (شكل كائن فضائي بأسنان)
+    ctx.fillStyle = "#4a0000";
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(80, -20, 100, 40);
+    ctx.quadraticCurveTo(80, 100, 0, 80);
+    ctx.closePath(); ctx.fill();
+    
+    // العين الحمراء
+    ctx.fillStyle = "red";
+    ctx.beginPath(); ctx.arc(70, 30, 8, 0, Math.PI*2); ctx.fill();
+    
+    // الأسنان
+    ctx.fillStyle = "white";
+    for(let i=0; i<3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(70+(i*10), 50); ctx.lineTo(75+(i*10), 65); ctx.lineTo(80+(i*10), 50); ctx.fill();
+    }
+    ctx.restore();
 }
 
-function drawCoin(x, y) {
-    ctx.fillStyle = "gold"; ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = "black"; ctx.font = "bold 12px Arial"; ctx.fillText("$", x-4, y+4);
+function upgradeCat() {
+    if (score >= coinsToNextLevel) {
+        score -= coinsToNextLevel;
+        catLevel++;
+        coinsToNextLevel *= 2;
+        p.gravity -= 0.05; // تصبح أخف
+        p.jump -= 0.5;    // تقفز أعلى
+        document.getElementById('upgradeBtn').innerText = `تطوير القطة (Cost: ${coinsToNextLevel}$)`;
+        document.getElementById('scr').innerText = score;
+        document.getElementById('lvl').innerText = `CAT Lvl ${catLevel}`;
+        alert("مبروك! القطة أصبحت أقوى الآن!");
+    } else {
+        alert("تحتاج إلى المزيد من الذهب من الدهاليز!");
+    }
 }
 
 function start() {
     document.getElementById('startScreen').style.display = 'none';
-    game.active = true; game.score = 0; game.cur = 0; obs = []; coins = [];
     p.y = canvas.height/2; p.v = 0;
+    obs = []; coins = []; monster.x = -200;
+    gameActive = true;
 }
 
 function loop() {
-    ctx.fillStyle = "#0a0a1a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050510"; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    if (game.active) {
-        p.v += 0.6; p.y += p.v; // جاذبية
-        m.y += (p.y - m.y) * 0.05; m.x = Math.min(p.x - 100, m.x + 0.5); // الوحش يطارد
+    if (gameActive) {
+        p.v += p.gravity; p.y += p.v;
+        monster.y += (p.y - monster.y) * 0.04; 
+        monster.x = Math.min(p.x - 120, monster.x + 0.3);
 
-        // توليد الأعمدة
-        if (obs.length === 0 || obs[obs.length-1].x < canvas.width - 400) {
+        if (obs.length === 0 || obs[obs.length-1].x < canvas.width - 450) {
             obs.push({ x: canvas.width, y: Math.random()*(canvas.height-300)+50, h: 250 });
         }
-        // توليد الجوائز
-        if (Math.random() < 0.01) coins.push({ x: canvas.width, y: Math.random()*(canvas.height-100)+50 });
+        if (Math.random() < 0.015) coins.push({ x: canvas.width, y: Math.random()*(canvas.height-100)+50 });
 
         obs.forEach((o, i) => {
-            o.x -= 5 + game.cur;
-            ctx.fillStyle = "cyan"; ctx.globalAlpha = 0.4;
-            ctx.fillRect(o.x, 0, 50, o.y); ctx.fillRect(o.x, o.y+o.h, 50, canvas.height);
+            o.x -= (5 + curStage);
+            ctx.fillStyle = colors[curStage]; ctx.globalAlpha = 0.3;
+            ctx.fillRect(o.x, 0, 60, o.y); ctx.fillRect(o.x, o.y+o.h, 60, canvas.height);
             ctx.globalAlpha = 1;
-            if (p.x+50 > o.x && p.x < o.x+50 && (p.y < o.y || p.y+40 > o.y+o.h)) game.active = false;
+            if (p.x+50 > o.x && p.x < o.x+60 && (p.y+10 < o.y || p.y+40 > o.y+o.h)) gameActive = false;
         });
 
         coins.forEach((c, i) => {
-            c.x -= 5 + game.cur; drawCoin(c.x, c.y);
-            if (Math.hypot(p.x+30 - c.x, p.y+20 - c.y) < 30) { game.score += 10; coins.splice(i, 1); }
+            c.x -= (5 + curStage);
+            ctx.fillStyle = "gold"; ctx.beginPath(); ctx.arc(c.x, c.y, 12, 0, Math.PI*2); ctx.fill();
+            if (Math.hypot(p.x+30 - c.x, p.y+25 - c.y) < 35) { score += 10; coins.splice(i, 1); }
         });
 
-        if (p.y > canvas.height || p.y < -50 || p.x < m.x + 50) game.active = false;
-
-        game.dist++; if (game.dist > 1000 && game.cur < 9) { game.cur++; game.dist = 0; }
-    } else if (p.y !== 0) {
+        if (p.y > canvas.height || p.y < -50 || p.x < monster.x + 80) gameActive = false;
+        
+        dist++; if(dist > 1500 && curStage < 4) { curStage++; dist = 0; }
+    } else {
         document.getElementById('startScreen').style.display = 'flex';
+        document.getElementById('scr').innerText = score;
     }
 
-    drawMonster(m.x, m.y);
-    drawCat(p.x, p.y);
-
-    document.getElementById('scr').innerText = game.score;
-    document.getElementById('loc').innerText = cities[game.cur];
+    drawMonster(monster.x, monster.y);
+    drawCat(p.x, p.y, catLevel);
+    
+    document.getElementById('scr').innerText = score;
+    document.getElementById('loc').innerText = stages[curStage];
     requestAnimationFrame(loop);
 }
 
-window.onmousedown = () => { if(game.active) p.v = -10; };
-window.ontouchstart = (e) => { e.preventDefault(); if(game.active) p.v = -10; };
+window.onmousedown = () => { if(gameActive) p.v = p.jump; };
+window.ontouchstart = (e) => { e.preventDefault(); if(gameActive) p.v = p.jump; };
 loop();
 </script>
 </body>
