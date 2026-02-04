@@ -3,29 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Legends: The Original Cat</title>
+    <title>Himalayan Legends: The Ultimate Reality</title>
     <style>
-        :root { --gold: #ffd700; --sky: #00f2ff; }
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; color: white; }
-        
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; touch-action: none; color: white; }
         #ui { position: absolute; top: 15px; width: 100%; display: flex; justify-content: space-around; z-index: 100; pointer-events: none; }
-        .stat-card { 
-            background: rgba(0, 0, 0, 0.8); border: 2px solid var(--gold);
-            padding: 10px 20px; border-radius: 20px; font-weight: bold; font-size: 18px;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-        }
-
-        .screen {
-            position: fixed; inset: 0; background: radial-gradient(circle at center, #1a0033 0%, #000 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 1000; text-align: center;
-        }
-        
-        .btn {
-            padding: 15px 50px; font-size: 22px; background: linear-gradient(45deg, var(--gold), #ff8c00);
-            border: none; border-radius: 50px; color: #000; cursor: pointer; font-weight: bold;
-            box-shadow: 0 8px 15px rgba(255, 215, 0, 0.4); margin-top: 20px;
-        }
+        .stat-card { background: rgba(0,0,0,0.8); border: 2px solid #ffd700; padding: 10px 18px; border-radius: 20px; font-size: 18px; box-shadow: 0 0 15px #ffd700; }
+        .screen { position: fixed; inset: 0; background: radial-gradient(circle, #1a0033 0%, #000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; }
+        .btn { padding: 18px 60px; font-size: 24px; background: linear-gradient(45deg, #ffd700, #ff8c00); border: none; border-radius: 50px; color: #000; cursor: pointer; font-weight: bold; transition: 0.3s; margin-top: 20px; box-shadow: 0 5px 15px rgba(255,215,0,0.4); }
+        .btn:hover { transform: scale(1.1); box-shadow: 0 0 30px #ffd700; }
     </style>
 </head>
 <body>
@@ -33,23 +18,23 @@
 <div id="ui">
     <div class="stat-card">🏰 <span id="locName">LONDON</span></div>
     <div class="stat-card">💰 <span id="scoreVal">0</span></div>
-    <div class="stat-card" style="border-color: var(--sky);">🏆 <span id="bestVal">0</span></div>
+    <div class="stat-card" style="border-color: #00f2ff;">🏆 <span id="bestVal">0</span></div>
 </div>
 
 <div id="startScreen" class="screen">
-    <h1 style="font-size: 3rem; text-shadow: 0 0 20px var(--gold);">HIMALAYAN LEGENDS</h1>
-    <div id="bText" style="color: var(--sky); font-size: 1.5rem;">BEST: 0</div>
+    <h1 style="font-size: 3.5rem; text-shadow: 0 0 20px #ffd700;">HIMALAYAN LEGENDS</h1>
+    <p style="color: #ccc;">20 Dungeons • 20 Challenges • 1 Legend</p>
+    <div id="bText" style="color: #00f2ff; font-size: 1.5rem;">BEST: 0</div>
     <button class="btn" onclick="game.start()">START MISSION</button>
 </div>
 
 <canvas id="gameCanvas"></canvas>
 
 <script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
 let audioCtx;
 
-// --- الروابط الأصلية التي اتفقنا عليها ---
+// --- الأصول (الصور الأصلية) ---
 const assets = {
     cat: 'https://img.icons8.com/color/96/cat--v1.png',
     coin: 'https://img.icons8.com/color/48/gold-pot.png',
@@ -58,26 +43,11 @@ const assets = {
     dragon: 'https://img.icons8.com/fluency/150/dragon.png',
     lion: 'https://img.icons8.com/fluency/150/lion.png'
 };
+const img = {}; Object.keys(assets).forEach(k => { img[k] = new Image(); img[k].src = assets[k]; });
 
-const img = {};
-Object.keys(assets).forEach(key => {
-    img[key] = new Image();
-    img[key].src = assets[key];
-});
-
-const isAr = navigator.language.startsWith('ar');
-const STAGES = [
-    {n: "London", c: "#FFFF00", m: "wolf"}, {n: "New York", c: "#0066FF", m: "ghost"},
-    {n: "Paris", c: "#FF0000", m: "dragon"}, {n: "Berlin", c: "#00FF00", m: "wolf"},
-    {n: "Amsterdam", c: "#FFFFFF", m: "ghost"}, {n: "Beijing", c: "#00FFFF", m: "dragon"},
-    {n: "Rome", c: "#8B4513", m: "wolf"}, {n: "Moscow", c: "#800000", m: "ghost"},
-    {n: "Athens", c: "#800080", m: "dragon"}, {n: "Bucharest", c: "#000080", m: "wolf"},
-    {n: "Tokyo", c: "#FF4500", m: "dragon"}, {n: "Dubai", c: "#FFD700", m: "wolf"},
-    {n: "Cairo", c: "#DAA520", m: "ghost"}, {n: "Madrid", c: "#32CD32", m: "wolf"},
-    {n: "Sydney", c: "#1E90FF", m: "dragon"}, {n: "Rio", c: "#FF69B4", m: "ghost"},
-    {n: "Seoul", c: "#00CED1", m: "wolf"}, {n: "Istanbul", c: "#A52A2A", m: "dragon"},
-    {n: "Prague", c: "#556B2F", m: "ghost"}, {n: "Latakia", c: "#00f2ff", m: "lion"}
-];
+// --- الـ 20 مرحلة ---
+const cities = ["London", "New York", "Paris", "Berlin", "Amsterdam", "Beijing", "Rome", "Moscow", "Athens", "Bucharest", "Tokyo", "Dubai", "Cairo", "Madrid", "Sydney", "Rio", "Seoul", "Istanbul", "Prague", "Latakia"];
+const colors = ["#FFFF00", "#0066FF", "#FF0000", "#00FF00", "#FFFFFF", "#00FFFF", "#8B4513", "#800000", "#800080", "#000080", "#FF4500", "#FFD700", "#DAA520", "#32CD32", "#1E90FF", "#FF69B4", "#00CED1", "#A52A2A", "#556B2F", "#00f2ff"];
 
 let game = {
     active: false, started: false, score: 0, cur: 0, dist: 0,
@@ -85,8 +55,7 @@ let game = {
     obs: [], coins: [], best: localStorage.getItem('hBest') || 0,
 
     init() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
         document.getElementById('bestVal').innerText = this.best;
         this.loop();
     },
@@ -107,48 +76,41 @@ let game = {
     },
 
     die() {
-        this.active = false; this.playSfx(100);
-        if(this.score > this.best) {
-            this.best = this.score;
-            localStorage.setItem('hBest', this.best);
-        }
+        this.active = false; this.playSfx(150);
+        if(this.score > this.best) { this.best = this.score; localStorage.setItem('hBest', this.best); }
         document.getElementById('startScreen').style.display = 'flex';
         this.init();
     },
 
     loop() {
         if (!game.active) { requestAnimationFrame(() => game.loop()); return; }
-        let s = STAGES[game.cur];
+        let sColor = colors[game.cur];
         ctx.fillStyle = "#050508"; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         if (game.started) {
             game.p.v += 0.55; game.p.y += game.p.v;
             game.m.y += (game.p.y - game.m.y) * 0.05;
-            game.m.x = Math.min(game.p.x - 150, game.m.x + 0.4);
+            game.m.x = Math.min(game.p.x - 140, game.m.x + 0.4);
             game.dist += 2;
 
-            if (game.dist > 2000 && game.cur < 19) { game.cur++; game.dist = 0; }
+            if (game.dist > 1800 && game.cur < 19) { game.cur++; game.dist = 0; this.playSfx(600); }
 
-            if (game.obs.length === 0 || game.obs[game.obs.length-1].x < canvas.width - 550) {
+            if (game.obs.length === 0 || game.obs[game.obs.length-1].x < canvas.width - 500) {
                 game.obs.push({x: canvas.width, y: Math.random()*(canvas.height-400)+100, h: 280});
             }
             if (Math.random() < 0.01) game.coins.push({x: canvas.width, y: Math.random()*(canvas.height-100)+50});
 
             game.obs.forEach((o, i) => {
                 o.x -= 7 + (game.cur * 0.4);
-                ctx.fillStyle = s.c; ctx.globalAlpha = 0.6;
+                ctx.fillStyle = sColor; ctx.globalAlpha = 0.5;
                 ctx.fillRect(o.x, 0, 60, o.y); ctx.fillRect(o.x, o.y + o.h, 60, canvas.height);
-                ctx.globalAlpha = 1; ctx.fillStyle = "white";
-                ctx.fillText((isAr?"دهليز ":"DUNGEON OF ") + s.n.toUpperCase(), o.x+5, o.y-10);
-                if (game.p.x+30 > o.x && game.p.x-30 < o.x+60 && (game.p.y+10 < o.y || game.p.y+60 > o.y+o.h)) game.die();
+                ctx.globalAlpha = 1; ctx.fillStyle = "white"; ctx.fillText(cities[game.cur].toUpperCase(), o.x+5, o.y-10);
+                if (game.p.x+30 > o.x && game.p.x-30 < o.x+60 && (game.p.y+10 < o.y || game.p.y+70 > o.y+o.h)) game.die();
             });
 
             game.coins.forEach((c, i) => {
-                c.x -= 7;
-                ctx.drawImage(img.coin, c.x, c.y, 45, 45);
-                if (Math.hypot(game.p.x - c.x, game.p.y - c.y) < 45) {
-                    game.score += 10; game.coins.splice(i, 1); game.playSfx(800);
-                }
+                c.x -= 7; ctx.drawImage(img.coin, c.x, c.y, 45, 45);
+                if (Math.hypot(game.p.x - c.x, game.p.y - c.y) < 45) { game.score += 10; game.coins.splice(i, 1); game.playSfx(800); }
             });
 
             if (game.p.y > canvas.height || game.p.y < -50 || game.p.x < game.m.x + 80) game.die();
@@ -156,16 +118,16 @@ let game = {
 
         // رسم الوحش (يواجه القطة)
         ctx.save();
-        ctx.translate(game.m.x + 150, game.m.y);
-        ctx.scale(-1, 1);
-        ctx.drawImage(img[s.m], 0, 0, 150, 150);
+        ctx.translate(game.m.x + 150, game.m.y); ctx.scale(-1, 1);
+        let mImg = (game.cur === 19) ? img.lion : (game.cur % 3 === 0 ? img.wolf : (game.cur % 3 === 1 ? img.ghost : img.dragon));
+        ctx.drawImage(mImg, 0, 0, 150, 150);
         ctx.restore();
 
-        // رسم القطة الأصلية
+        // رسم القطة
         ctx.drawImage(img.cat, game.p.x, game.p.y, 85, 85);
 
         document.getElementById('scoreVal').innerText = game.score;
-        document.getElementById('locName').innerText = s.n.toUpperCase();
+        document.getElementById('locName').innerText = cities[game.cur].toUpperCase();
         requestAnimationFrame(() => game.loop());
     }
 };
