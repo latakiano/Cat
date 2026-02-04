@@ -3,74 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Legends: Pro Edition</title>
+    <title>Himalayan Legends: Monster Galaxy</title>
     <style>
-        :root { --gold: #ffd700; --neon: #00f2ff; --diamond: #b9f2ff; }
-        body { margin: 0; overflow: hidden; background: #050508; font-family: 'Arial', sans-serif; touch-action: none; color: white; }
+        :root { --gold: #ffd700; --neon: #00f2ff; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial', sans-serif; touch-action: none; color: white; }
         #ui { position: absolute; top: 10px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; pointer-events: none; }
-        .stats-row { display: flex; gap: 10px; margin-bottom: 5px; }
-        .stat-box { background: rgba(0,0,0,0.9); border: 2px solid var(--gold); padding: 5px 12px; border-radius: 10px; font-weight: bold; font-size: 13px; }
-        #progress-container { width: 85%; height: 10px; background: #222; border-radius: 5px; overflow: hidden; border: 1px solid #444; }
-        #progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--neon), #0066ff); }
-        .screen { position: fixed; inset: 0; background: rgba(0,0,0,0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; padding: 15px; }
-        .btn { padding: 15px 30px; font-size: 18px; background: var(--gold); border: none; border-radius: 50px; color: #000; cursor: pointer; font-weight: bold; margin: 8px; box-shadow: 0 5px 15px rgba(255,215,0,0.4); }
-        .shop-panel { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; margin-top: 10px; border: 1px solid var(--neon); }
-        .leaderboard { font-size: 12px; color: var(--gold); margin-top: 10px; }
+        .stat-box { background: rgba(0,0,0,0.8); border: 2px solid var(--gold); padding: 5px 15px; border-radius: 10px; font-weight: bold; margin: 2px; display: inline-block; }
+        #progress-bar { width: 0%; height: 8px; background: var(--neon); transition: 0.3s; margin-top: 5px; box-shadow: 0 0 10px var(--neon); }
+        .screen { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; }
+        .btn { padding: 15px 40px; font-size: 20px; background: var(--gold); border: none; border-radius: 50px; color: #000; cursor: pointer; font-weight: bold; margin: 10px; }
     </style>
 </head>
 <body>
 
 <div id="ui">
-    <div class="stats-row">
+    <div>
         <div class="stat-box">🌍 <span id="city-name">LONDON</span></div>
         <div class="stat-box">💰 <span id="gold-val">0</span></div>
-        <div class="stat-box">🏆 الترتيب: <span id="rank">#21</span></div>
     </div>
-    <div id="progress-container"><div id="progress-bar"></div></div>
+    <div style="width: 80%; background: #222; border-radius: 5px;"><div id="progress-bar"></div></div>
 </div>
 
 <div id="startScreen" class="screen">
-    <h2 style="color: var(--gold); margin: 0;">دوري أبطال إنقاذ القطط</h2>
-    <div class="leaderboard" id="leaderboard">أول 20 بطل يتأهلون للمراحل المتقدمة!</div>
-    
-    <div class="shop-panel">
-        <p style="margin:5px; font-size:14px;">تطويرات احترافية حسب الطلب:</p>
-        <button class="btn" style="font-size:14px; padding:10px 20px; background:var(--neon);" onclick="buyFeature()">شراء قطة أسطورية (5.99$)</button>
-    </div>
-
-    <button class="btn" onclick="game.start()">بدء التحدي</button>
+    <h1 id="title" style="color: var(--gold);">مغامرة الكهوف الأسطورية</h1>
+    <p id="desc">واجه الوحوش للوصول إلى اللاذقية!</p>
+    <button class="btn" onclick="game.start()">دخول المرحلة</button>
 </div>
 
 <canvas id="gameCanvas"></canvas>
 
 <script>
 const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
-const STAGES = ["London", "New York", "Paris", "Berlin", "Tokyo", "Dubai", "Latakia"];
-const COLORS = ["#FF3131", "#39FF14", "#00FFFF", "#FFFF33", "#FF00FF", "#FFAC1C", "#00f2ff"];
+const STAGES = [
+    {n: "LONDON", m: "DRAGON", c: "#FF3131"},
+    {n: "PARIS", m: "SHARK", c: "#00FFFF"},
+    {n: "ROME", m: "SPIDER", c: "#39FF14"},
+    {n: "DUBAI", m: "EAGLE", c: "#FFAC1C"},
+    {n: "LATAKIA", m: "LION", c: "#FFD700"}
+];
 
 let audioCtx;
-function playSound(freq, type, dur) {
+function playSound(f, d) {
     if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.start(); osc.stop(audioCtx.currentTime + dur);
+    let o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.frequency.value = f; g.gain.value = 0.1;
+    o.connect(g).connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + d);
 }
 
 let game = {
-    active: false, gold: 0, curStage: 0, progress: 0, target: 1500,
+    active: false, gold: 0, cur: 0, dist: 0, target: 2000,
     init() { this.resize(); window.onresize = () => this.resize(); this.loop(); },
     resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; },
-    start() { document.getElementById('startScreen').style.display = 'none'; p.y = canvas.height/2; p.v = 0; this.progress = 0; obstacles = []; items = []; this.active = true; },
-    loop() { update(); draw(); requestAnimationFrame(() => game.loop()); }
+    start() { 
+        document.getElementById('startScreen').style.display = 'none';
+        p.y = canvas.height/2; p.v = 0; enemy.x = -300; 
+        obs = []; items = []; this.dist = 0; portal = null; this.active = true; 
+    },
+    win() {
+        this.active = false; this.cur = (this.cur + 1) % STAGES.length;
+        document.getElementById('startScreen').style.display = 'flex';
+        document.getElementById('title').innerText = "تم اختراق الكهف!";
+        document.getElementById('desc').innerText = "الوجهة القادمة: " + STAGES[this.cur].n;
+    }
 };
 
-let p = { x: 90, y: 0, v: 0, g: 0.55, jump: -10 };
-let enemy = { x: -150, y: 0 };
-let obstacles = [], items = [];
+let p = { x: 120, y: 0, v: 0, g: 0.5, jump: -10 };
+let enemy = { x: -300, y: 0 };
+let obs = [], items = [], portal = null;
 
 function drawCat(x, y) {
     ctx.save(); ctx.translate(x, y);
@@ -78,19 +78,29 @@ function drawCat(x, y) {
     ctx.beginPath(); ctx.ellipse(30, 25, 22, 16, 0, 0, Math.PI*2); ctx.fill(); // الجسم
     ctx.fillRect(15, 38, 6, 10); ctx.fillRect(40, 38, 6, 10); // أرجل
     ctx.beginPath(); ctx.arc(50, 15, 12, 0, Math.PI*2); ctx.fill(); // رأس
-    ctx.fillStyle = "#5D4037"; ctx.beginPath(); ctx.moveTo(45, 5); ctx.lineTo(40, -5); ctx.lineTo(50, 3); ctx.fill(); // أذن
-    ctx.fillStyle = "blue"; ctx.beginPath(); ctx.arc(55, 13, 2, 0, Math.PI*2); ctx.fill(); // عين
+    ctx.fillStyle = "#5D4037"; ctx.beginPath(); ctx.moveTo(45, 5); ctx.lineTo(40, -5); ctx.lineTo(50, 3); ctx.fill();
+    ctx.fillStyle = "blue"; ctx.beginPath(); ctx.arc(55, 13, 2, 0, Math.PI*2); ctx.fill();
     ctx.restore();
 }
 
-function drawMonster(x, y) {
+function drawMonster(x, y, type) {
     ctx.save(); ctx.translate(x, y);
-    ctx.fillStyle = COLORS[game.curStage];
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(110, -30, 130, 40); // الفك العلوي
-    ctx.lineTo(130, 55); ctx.quadraticCurveTo(110, 110, 0, 80); ctx.fill(); // الفك السفلي
-    ctx.fillStyle = "white"; // الأسنان
-    for(let i=0; i<5; i++) { ctx.beginPath(); ctx.moveTo(95+(i*7), 40); ctx.lineTo(98+(i*7), 52); ctx.lineTo(102+(i*7), 40); ctx.fill(); }
-    ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(85, 25, 6, 0, Math.PI*2); ctx.fill(); // عين
+    ctx.fillStyle = STAGES[game.cur].c;
+    if(type === "DRAGON") { // تنين بفك واسع
+        ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(130, 20); ctx.lineTo(100, 40); ctx.lineTo(130, 60); ctx.lineTo(0,80); ctx.fill();
+    } else if(type === "SHARK") { // قرش بزعانف
+        ctx.beginPath(); ctx.ellipse(60, 40, 70, 30, 0, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(40, 10); ctx.lineTo(60, -20); ctx.lineTo(80, 10); ctx.fill();
+    } else if(type === "SPIDER") { // عنكبوت بـ 8 أرجل
+        ctx.beginPath(); ctx.arc(60, 40, 30, 0, Math.PI*2); ctx.fill();
+        for(let i=0; i<4; i++) { ctx.fillRect(30, 20+i*15, 60, 4); }
+    } else { // الأسد (اللاذقية)
+        ctx.beginPath(); ctx.arc(60, 40, 45, 0, Math.PI*2); ctx.fill(); // لبدة الأسد
+        ctx.fillStyle = "#ffa500"; ctx.beginPath(); ctx.arc(60, 40, 30, 0, Math.PI*2); ctx.fill();
+    }
+    // أسنان بيضاء وعين حمراء للكل
+    ctx.fillStyle = "white"; for(let i=0; i<3; i++) ctx.fillRect(100+i*10, 35, 5, 10);
+    ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(80, 25, 6, 0, Math.PI*2); ctx.fill();
     ctx.restore();
 }
 
@@ -98,58 +108,54 @@ function update() {
     if(!game.active) return;
     p.v += p.g; p.y += p.v;
     enemy.y += (p.y - enemy.y) * 0.05;
-    enemy.x = Math.min(p.x - 110, enemy.x + (0.4 + game.curStage*0.12));
-    game.progress += 2.5;
-    document.getElementById('progress-bar').style.width = (game.progress/game.target*100) + "%";
+    enemy.x = Math.min(p.x - 120, enemy.x + (0.5 + game.cur*0.1));
 
-    if(game.progress >= game.target) {
-        game.active = false; game.curStage = (game.curStage + 1) % STAGES.length;
-        document.getElementById('startScreen').style.display = 'flex';
-        if(game.gold > 100) document.getElementById('rank').innerText = "#" + Math.max(1, 21 - Math.floor(game.gold/100));
-    }
+    game.dist += 3;
+    document.getElementById('progress-bar').style.width = (game.dist/game.target*100) + "%";
 
-    if(obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 450) {
-        obstacles.push({ x: canvas.width, y: Math.random()*(canvas.height-300)+50, h: 250 });
-    }
-    obstacles.forEach((o, i) => {
-        o.x -= (7 + game.curStage);
-        if(p.x+50 > o.x && p.x < o.x+50 && (p.y < o.y || p.y+45 > o.y+o.h)) { game.active = false; document.getElementById('startScreen').style.display = 'flex'; }
-    });
+    // ظهور الكهف في النهاية
+    if(game.dist >= game.target && !portal) portal = { x: canvas.width, y: canvas.height/2 - 100 };
 
-    if(Math.random() < 0.02) items.push({ x: canvas.width, y: Math.random()*(canvas.height-100)+50, type: Math.random() > 0.1 ? 'coin' : 'diamond' });
-    items.forEach((c, i) => {
-        c.x -= (7 + game.curStage);
-        if(Math.hypot(p.x+30 - c.x, p.y+20 - c.y) < 35) {
-            if(c.type === 'coin') { game.gold += 10; playSound(800, 'square', 0.1); }
-            else { game.gold += 50; playSound(1200, 'sine', 0.2); } // صوت الماس
-            items.splice(i, 1);
+    if(portal) {
+        portal.x -= 5;
+        if(p.x > portal.x) game.win();
+    } else {
+        if(obs.length === 0 || obs[obs.length-1].x < canvas.width - 450) {
+            obs.push({ x: canvas.width, y: Math.random()*(canvas.height-300)+50, h: 250 });
         }
+    }
+
+    obs.forEach((o, i) => {
+        o.x -= 6;
+        if(p.x+50 > o.x && p.x < o.x+50 && (p.y < o.y || p.y+45 > o.y+o.h)) game.active = false;
     });
 
     if(p.y > canvas.height || p.y < -50 || p.x < enemy.x + 80) { game.active = false; document.getElementById('startScreen').style.display = 'flex'; }
-    document.getElementById('gold-val').innerText = game.gold;
-    document.getElementById('city-name').innerText = STAGES[game.curStage].toUpperCase();
 }
 
 function draw() {
     ctx.fillStyle = "#050508"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    obstacles.forEach(o => {
-        ctx.fillStyle = COLORS[game.curStage]; ctx.shadowBlur = 15; ctx.shadowColor = COLORS[game.curStage];
-        ctx.fillRect(o.x, 0, 50, o.y); ctx.fillRect(o.x, o.y+o.h, 50, canvas.height); ctx.shadowBlur = 0;
+    
+    if(portal) { // رسم الكهف
+        ctx.fillStyle = STAGES[game.cur].c; ctx.shadowBlur = 30; ctx.shadowColor = "white";
+        ctx.beginPath(); ctx.arc(portal.x+100, portal.y+100, 150, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(portal.x+100, portal.y+100, 120, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "white"; ctx.font = "bold 20px Arial"; ctx.fillText("مدخل الكهف", portal.x+50, portal.y+100);
+        ctx.shadowBlur = 0;
+    }
+
+    obs.forEach(o => {
+        ctx.fillStyle = STAGES[game.cur].c; ctx.fillRect(o.x, 0, 50, o.y); ctx.fillRect(o.x, o.y+o.h, 50, canvas.height);
     });
-    items.forEach(c => {
-        ctx.fillStyle = c.type === 'coin' ? "gold" : "#b9f2ff";
-        ctx.beginPath(); ctx.arc(c.x, c.y, c.type === 'coin' ? 10 : 14, 0, Math.PI*2); ctx.fill();
-    });
-    drawMonster(enemy.x, enemy.y); drawCat(p.x, p.y);
+
+    drawMonster(enemy.x, enemy.y, STAGES[game.cur].m);
+    drawCat(p.x, p.y);
+    document.getElementById('city-name').innerText = STAGES[game.cur].n;
 }
 
-function buyFeature() {
-    alert("سيتم توجيهك لخدمة الدفع حسب بلدك... السعر: 5.99$\nالمميزات: قفزة مضاعفة + درع ضد الوحوش!");
-}
-
-window.onmousedown = () => { if(game.active) { p.v = p.jump; playSound(150, 'triangle', 0.15); } };
-window.ontouchstart = (e) => { e.preventDefault(); if(game.active) { p.v = p.jump; playSound(150, 'triangle', 0.15); } };
+function loop() { update(); draw(); requestAnimationFrame(() => game.loop()); }
+window.onmousedown = () => { if(game.active) { p.v = p.jump; playSound(200, 0.1); } };
+window.ontouchstart = (e) => { e.preventDefault(); if(game.active) { p.v = p.jump; playSound(200, 0.1); } };
 game.init();
 </script>
 </body>
