@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Himalayan Cat: Global Edition</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial', sans-serif; touch-action: none; }
+        
+        /* واجهة اللعبة */
+        #ui { position: absolute; top: 15px; width: 100%; display: flex; justify-content: space-around; z-index: 100; pointer-events: none; }
+        .stat-item { background: rgba(0, 0, 0, 0.7); border: 1.5px solid #00f2ff; padding: 8px 15px; border-radius: 12px; color: #fff; font-weight: bold; box-shadow: 0 0 10px rgba(0, 242, 255, 0.3); }
+
+        /* الشاشات المنبثقة */
+        #overlay, #shop { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; color: #fff; text-align: center; }
+        #shop { display: none; background: radial-gradient(circle, #1a0033 0%, #000 100%); }
+
+        .btn { padding: 15px 40px; font-size: 20px; background: linear-gradient(45deg, #00f2ff, #0062ff); color: #fff; border: none; cursor: pointer; border-radius: 30px; margin: 10px; transition: 0.3s; font-weight: bold; }
+        .btn-shop { background: linear-gradient(45deg, #ffae00, #ff4500); }
+        .btn:hover { transform: scale(1.05); }
+
+        .item-card { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin: 10px; border: 1px solid #ffae00; width: 250px; }
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <div class="stat-item"><span id="txt-lvl">المرحلة</span>: <span id="lvlText">1</span></div>
+    <div class="stat-item">💰 <span id="coinText">0</span></div>
+</div>
+
+<div id="overlay">
+    <h1 id="txt-title" style="font-size: 40px; color: #00f2ff;">كابوس الهملايا 🐈</h1>
+    <button class="btn" onclick="initGame()" id="txt-start">دخول المعركة</button>
+    <button class="btn btn-shop" onclick="toggleShop(true)" id="txt-open-shop">المتجر (0.30$)</button>
+</div>
+
+<div id="shop">
+    <h1 id="txt-shop-title">متجر التطويرات 🛒</h1>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+        <div class="item-card">
+            <h3>قطة سوبر 🐾</h3>
+            <p>قفزة أعلى وسرعة أكبر</p>
+            <button class="btn btn-shop" onclick="buyItem('cat')">0.30 $</button>
+        </div>
+        <div class="item-card">
+            <h3>سلاح الليزر 🔫</h3>
+            <p>تدمير العوائق تلقائياً</p>
+            <button class="btn btn-shop" onclick="buyItem('weapon')">0.30 $</button>
+        </div>
+    </div>
+    <button class="btn" onclick="toggleShop(false)">إغلاق</button>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+    
+    // --- نظام اللغات ---
+    const lang = navigator.language.startsWith('ar') ? 'ar' : 'en';
+    const texts = {
+        ar: { title: "كابوس الهملايا 🐈", start: "دخول المعركة", shop: "المتجر (0.30$)", lvl: "المرحلة", shopTitle: "متجر التطويرات" },
+        en: { title: "Himalayan Nightmare 🐈", start: "Start Game", shop: "Shop ($0.30)", lvl: "Level", shopTitle: "Upgrades Shop" }
+    };
+    document.getElementById('txt-title').innerText = texts[lang].title;
+    document.getElementById('txt-start').innerText = texts[lang].start;
+    document.getElementById('txt-open-shop').innerText = texts[lang].shop;
+    document.getElementById('txt-lvl').innerText = texts[lang].lvl;
+    document.getElementById('txt-shop-title').innerText = texts[lang].shopTitle;
+
+    // --- الإعدادات والمراحل ---
+    const assets = {
+        cat: 'https://img.icons8.com/color/96/cat--v1.png',
+        catSuper: 'https://img.icons8.com/color/96/cat-mask.png',
+        wolf: 'https://img.icons8.com/color/150/werewolf.png',
+        ghost: 'https://img.icons8.com/color/150/grim-reaper.png',
+        dragon: 'https://img.icons8.com/color/150/dragon.png',
+        lion: 'https://img.icons8.com/color/150/lion.png'
+    };
+    const imgObj = {}; Object.keys(assets).forEach(k => { imgObj[k] = new Image(); imgObj[k].src = assets[k]; });
+
+    const STAGES = Array.from({length: 20}, (_, i) => ({
+        type: ['wolf', 'ghost', 'lion', 'dragon'][i % 4],
+        neon: ['#00f2ff', '#ff0055', '#ffae00', '#7a00ff'][i % 4],
+        speed: 7 + (i * 0.5)
+    }));
+
+    let curStage = 0, distance = 1000, active = false, started = false, score = 0;
+    let p = { x: 120, y: 0, v: 0, power: 1 }, m = { x: -300, y: 0 };
+    let obstacles = [], coins = [], hasWeapon = false;
+
+    function initGame() {
+        document.getElementById('overlay').style.display = 'none';
+        distance = 1000; p.y = canvas.height / 2; p.v = 0; m.x = -300;
+        obstacles = []; coins = []; active = true; started = false;
+        document.getElementById('lvlText').innerText = curStage + 1;
+    }
+
+    function toggleShop(show) { document.getElementById('shop').style.display = show ? 'flex' : 'none'; }
+
+    function buyItem(type) {
+        alert("سعر السلعة 0.30 دولار (تواصل مع المطور لربط بوابة الدفع)");
+        if(type === 'cat') p.power = 1.5;
+        if(type === 'weapon') hasWeapon = true;
+        toggleShop(false);
+    }
+
+    function gameLoop() {
+        let s = STAGES[curStage];
+        ctx.fillStyle = "#050505"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (active && started) {
+            p.v += 0.5; p.y += p.v; distance -= 0.5;
+            m.y += (p.y - m.y) * 0.05; m.x = Math.min(p.x - 140, m.x + 0.3);
+
+            // توليد عوائق وجوائز
+            if (Math.random() < 0.02) {
+                obstacles.push({ x: canvas.width, y: Math.random()*(canvas.height-300)+100, h: 250 });
+            }
+            if (Math.random() < 0.03) {
+                coins.push({ x: canvas.width, y: Math.random()*canvas.height });
+            }
+
+            // معالجة العوائق (تخفيف الإضاءة عبر شفافية النيون)
+            obstacles.forEach((o, i) => {
+                o.x -= s.speed;
+                ctx.fillStyle = s.neon; ctx.globalAlpha = 0.6; // تخفيف الإضاءة
+                ctx.fillRect(o.x, 0, 50, o.y); ctx.fillRect(o.x, o.y + o.h, 50, canvas.height);
+                ctx.globalAlpha = 1.0;
+                
+                if (hasWeapon && Math.abs(p.x - o.x) < 100) obstacles.splice(i, 1); // السلاح يدمر العوائق
+                if (p.x + 40 > o.x && p.x < o.x + 50 && (p.y < o.y || p.y + 40 > o.y + o.h)) active = false;
+            });
+
+            // معالجة الجوائز
+            coins.forEach((c, i) => {
+                c.x -= s.speed;
+                ctx.font = "25px Arial"; ctx.fillText("💰", c.x, c.y);
+                if (Math.hypot(p.x - c.x, p.y - c.y) < 40) { score += 10; coins.splice(i, 1); }
+            });
+
+            if (p.y > canvas.height || p.y < -50 || p.x < m.x + 50) active = false;
+            if (!active) document.getElementById('overlay').style.display = 'flex';
+            document.getElementById('coinText').innerText = score;
+        }
+
+        // --- رسم الوحش (بدون دائرة، وبإتجاه القطة) ---
+        ctx.save();
+        ctx.translate(m.x + 150, m.y);
+        ctx.scale(-1, 1); // قلب الصورة لتواجه اليمين (القطة)
+        ctx.drawImage(imgObj[s.type], 0, 0, 150, 150);
+        ctx.restore();
+
+        // رسم القطة (عادية أو مطورة)
+        ctx.drawImage(p.power > 1 ? imgObj.catSuper : imgObj.cat, p.x, p.y, 70, 70);
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    const jump = () => { if (active) { started = true; p.v = -8 * p.power; } }
+    window.onmousedown = jump; window.ontouchstart = jump;
+    window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    window.onresize();
+    gameLoop();
+</script>
+</body>
+</html>
