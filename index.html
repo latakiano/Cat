@@ -5,217 +5,168 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Himalayan Legends: Global Edition</title>
     <style>
-        :root { --gold: #ffd700; --neon: #00f2ff; --bg: #050508; }
-        body { margin: 0; overflow: hidden; background: var(--bg); font-family: 'Segoe UI', Roboto, sans-serif; touch-action: none; color: white; }
+        :root { --gold: #ffd700; --neon: #00f2ff; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial', sans-serif; touch-action: none; color: white; }
         
-        /* واجهة علوية عالمية */
-        #top-bar { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 60px; 
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px);
-            display: flex; justify-content: space-around; align-items: center;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.3); z-index: 100;
+        /* الواجهة العالمية العلوية - خارج اللعبة */
+        #top-ui { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 70px; 
+            background: linear-gradient(to bottom, rgba(20,20,25,1), rgba(0,0,0,0));
+            display: flex; justify-content: space-around; align-items: center; z-index: 100;
         }
-        .info-item { text-align: center; }
-        .label { font-size: 10px; color: var(--neon); text-transform: uppercase; letter-spacing: 1px; }
-        .value { font-size: 18px; font-weight: bold; color: var(--gold); display: block; }
+        .stat-item { text-align: center; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 10px; border-bottom: 2px solid var(--gold); }
+        .label { font-size: 10px; color: var(--neon); display: block; }
+        .val { font-size: 18px; font-weight: bold; color: white; }
 
-        /* عداد السرعة في الزاوية */
+        /* عداد السرعة في الزاوية اليمنى السفلية */
         #speedo { 
-            position: fixed; bottom: 20px; left: 20px; 
-            width: 60px; height: 60px; border-radius: 50%;
-            border: 2px solid var(--neon); background: rgba(0,0,0,0.7);
+            position: absolute; bottom: 20px; right: 20px; 
+            width: 70px; height: 70px; border-radius: 50%;
+            border: 3px solid var(--neon); background: rgba(0,0,0,0.8);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 100; box-shadow: 0 0 15px var(--neon);
         }
-        #speed-val { font-size: 16px; font-weight: bold; }
-        .km { font-size: 8px; color: #ccc; }
 
-        canvas { display: block; }
-
-        .screen { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            z-index: 1000; text-align: center; 
-        }
-        .btn { 
-            padding: 15px 50px; font-size: 20px; background: var(--gold); border: none; 
-            border-radius: 10px; color: #000; cursor: pointer; font-weight: bold; 
-            transition: 0.3s; box-shadow: 0 0 20px rgba(255,215,0,0.4);
-        }
+        /* شاشة البداية */
+        #screen { position: fixed; inset: 0; background: #050508; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+        .btn { padding: 20px 60px; font-size: 24px; background: var(--gold); border: none; border-radius: 50px; color: #000; cursor: pointer; font-weight: bold; box-shadow: 0 5px 30px rgba(255,215,0,0.5); }
     </style>
 </head>
 <body>
 
-<div id="top-bar">
-    <div class="info-item">
-        <span class="label">المدينة الحالية</span>
-        <span id="city-name" class="value">LONDON</span>
-    </div>
-    <div class="info-item">
-        <span class="label">رصيد الذهب</span>
-        <span id="gold-val" class="value">0</span>
-    </div>
-    <div style="width: 100px; height: 6px; background: #333; border-radius: 3px;">
-        <div id="prog-bar" style="width: 0%; height: 100%; background: var(--neon); border-radius: 3px;"></div>
+<div id="top-ui">
+    <div class="stat-item"><span class="label">المدينة</span><span id="city-val" class="val">LONDON</span></div>
+    <div class="stat-item"><span class="label">الذهب</span><span id="gold-val" class="val">0</span></div>
+    <div style="width: 100px; height: 8px; background: #222; border-radius: 4px; overflow: hidden; border: 1px solid #444;">
+        <div id="prog-bar" style="width: 0%; height: 100%; background: var(--neon);"></div>
     </div>
 </div>
 
 <div id="speedo">
-    <span id="speed-val">0</span>
-    <span class="km">KM/H</span>
+    <span id="km-val" style="font-size: 20px; font-weight: bold;">0</span>
+    <span style="font-size: 9px; color: var(--neon);">KM/H</span>
 </div>
 
-<div id="startScreen" class="screen">
-    <h1 style="color: var(--gold); letter-spacing: 2px;">أساطير الهيمالايا 2026</h1>
-    <p id="msg" style="color: #ccc;">استعد لدخول أول كهف نحو العالمية</p>
-    <button class="btn" onclick="game.start()">ابدأ الرحلة</button>
+<div id="screen">
+    <h1 style="color: var(--gold); margin-bottom: 30px;">أساطير الهيمالايا: رحلة الـ 45</h1>
+    <button class="btn" onclick="startGame()">ابدأ التحدي</button>
 </div>
 
-<canvas id="gameCanvas"></canvas>
+<canvas id="game"></canvas>
 
 <script>
-const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
 const STAGES = [
-    {n: "LONDON", m: "DRAGON", c: "#FF4444"},
-    {n: "PARIS", m: "SPIDER", c: "#44FF44"},
-    {n: "ROME", m: "SHARK", c: "#4444FF"},
-    {n: "DUBAI", m: "EAGLE", c: "#FF44FF"},
+    {n: "LONDON", m: "DRAGON", c: "#FF3131"},
+    {n: "PARIS", m: "SPIDER", c: "#39FF14"},
+    {n: "ROME", m: "SHARK", c: "#00FFFF"},
+    {n: "DUBAI", m: "EAGLE", c: "#FF00FF"},
     {n: "LATAKIA", m: "LION", c: "#FFD700"}
 ];
 
-let audioCtx;
-function playSound(f, d) {
-    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    let o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.frequency.value = f; g.gain.value = 0.05;
-    o.connect(g).connect(audioCtx.destination);
-    o.start(); o.stop(audioCtx.currentTime + d);
+let active = false, gold = 0, stageIdx = 0, dist = 0, target = 2000;
+let p = { x: 120, y: 0, v: 0, g: 0.55, j: -11 };
+let enemy = { x: -300, y: 0 };
+let obstacles = [], items = [], portal = null;
+
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize);
+resize();
+
+function startGame() {
+    document.getElementById('screen').style.display = 'none';
+    active = true; p.y = canvas.height/2; p.v = 0; enemy.x = -300;
+    obstacles = []; items = []; dist = 0; portal = null;
 }
-
-let game = {
-    active: false, gold: 0, cur: 0, dist: 0, target: 2000, speed: 0,
-    init() { this.resize(); window.onresize = () => this.resize(); this.loop(); },
-    resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; },
-    start() { 
-        document.getElementById('startScreen').style.display = 'none';
-        p.y = canvas.height/2; p.v = 0; enemy.x = -400; 
-        obs = []; items = []; this.dist = 0; portal = null; this.active = true; 
-    },
-    win() {
-        this.active = false; this.cur = (this.cur + 1) % STAGES.length;
-        document.getElementById('startScreen').style.display = 'flex';
-        document.getElementById('msg').innerText = "تم الوصول لمدينة: " + STAGES[this.cur].n;
-    }
-};
-
-let p = { x: 150, y: 0, v: 0, g: 0.55, jump: -11 };
-let enemy = { x: -400, y: 0 };
-let obs = [], items = [], portal = null;
 
 function drawCat(x, y) {
     ctx.save(); ctx.translate(x, y);
-    // الجسم (أبيض) والذيل
     ctx.fillStyle = "white";
-    ctx.beginPath(); ctx.ellipse(30, 25, 25, 18, 0, 0, Math.PI*2); ctx.fill();
-    ctx.lineWidth = 3; ctx.strokeStyle = "white"; ctx.beginPath(); ctx.moveTo(5, 25); ctx.quadraticCurveTo(-15, 0, 0, -5); ctx.stroke();
-    // الأرجل
-    ctx.fillRect(10, 35, 8, 12); ctx.fillRect(45, 35, 8, 12);
-    // الرأس
-    ctx.beginPath(); ctx.arc(55, 15, 15, 0, Math.PI*2); ctx.fill();
-    // الأذنين البنيتين (مطلب أساسي)
-    ctx.fillStyle = "#3e2723"; 
-    ctx.beginPath(); ctx.moveTo(45, 5); ctx.lineTo(40, -12); ctx.lineTo(52, 2); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(65, 5); ctx.lineTo(70, -12); ctx.lineTo(58, 2); ctx.fill();
-    // العيون الزرقاء
-    ctx.fillStyle = "#00f2ff"; ctx.beginPath(); ctx.arc(62, 12, 3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(30, 25, 24, 17, 0, 0, Math.PI*2); ctx.fill(); // الجسم
+    ctx.fillRect(12, 35, 7, 12); ctx.fillRect(40, 35, 7, 12); // الأرجل
+    ctx.beginPath(); ctx.arc(52, 15, 14, 0, Math.PI*2); ctx.fill(); // الرأس
+    // الأذنين البنيتين
+    ctx.fillStyle = "#3e2723";
+    ctx.beginPath(); ctx.moveTo(42, 5); ctx.lineTo(38, -10); ctx.lineTo(48, 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(62, 5); ctx.lineTo(66, -10); ctx.lineTo(56, 2); ctx.fill();
+    // عيون زرقاء
+    ctx.fillStyle = "#00f2ff"; ctx.beginPath(); ctx.arc(58, 12, 3, 0, Math.PI*2); ctx.fill();
     ctx.restore();
 }
 
-function drawMonster(x, y, type) {
+function drawMonster(x, y) {
     ctx.save(); ctx.translate(x, y);
-    ctx.fillStyle = STAGES[game.cur].c; ctx.shadowBlur = 15; ctx.shadowColor = STAGES[game.cur].c;
-    if(type === "DRAGON") {
-        ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(140, 20); ctx.lineTo(100, 45); ctx.lineTo(140, 70); ctx.lineTo(0,90); ctx.fill();
-    } else if(type === "SPIDER") {
-        ctx.beginPath(); ctx.arc(60, 45, 35, 0, Math.PI*2); ctx.fill();
-        for(let i=0; i<4; i++) ctx.fillRect(0, 20+i*18, 120, 4);
-    } else if(type === "SHARK") {
-        ctx.beginPath(); ctx.ellipse(70, 45, 90, 35, 0, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(60, 15); ctx.lineTo(80, -25); ctx.lineTo(100, 15); ctx.fill();
-    } else { // الأسد
-        ctx.beginPath(); ctx.arc(70, 45, 55, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "#ff8f00"; ctx.beginPath(); ctx.arc(70, 45, 35, 0, Math.PI*2); ctx.fill();
-    }
-    // الأسنان والعيون
-    ctx.fillStyle = "white"; for(let i=0; i<4; i++) ctx.fillRect(110+i*8, 40, 5, 10);
-    ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(90, 25, 7, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = STAGES[stageIdx].c;
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(140, 25); ctx.lineTo(100, 45); ctx.lineTo(140, 65); ctx.lineTo(0,90); ctx.fill(); // وحش بفك وأسنان
+    ctx.fillStyle = "white"; for(let i=0; i<3; i++) ctx.fillRect(110+i*8, 42, 5, 8); // أسنان
+    ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(80, 25, 7, 0, Math.PI*2); ctx.fill();
     ctx.restore();
 }
 
 function update() {
-    if(!game.active) return;
+    if (!active) return;
     p.v += p.g; p.y += p.v;
     enemy.y += (p.y - enemy.y) * 0.05;
-    enemy.x = Math.min(p.x - 140, enemy.x + (0.8 + game.cur * 0.2));
+    enemy.x = Math.min(p.x - 110, enemy.x + (0.7 + stageIdx * 0.2));
+    
+    dist += 4;
+    document.getElementById('prog-bar').style.width = (dist/target*100) + "%";
+    document.getElementById('km-val').innerText = Math.floor(10 + stageIdx*5 + dist/100);
 
-    game.speed = Math.floor(8 + game.cur * 2 + (game.dist/100));
-    document.getElementById('speed-val').innerText = game.speed;
-
-    game.dist += 4;
-    document.getElementById('prog-bar').style.width = (game.dist/game.target*100) + "%";
-
-    if(game.dist >= game.target && !portal) portal = { x: canvas.width, y: canvas.height/2 - 150 };
-
-    if(portal) {
+    if (dist >= target && !portal) portal = { x: canvas.width, y: canvas.height/2 - 100 };
+    if (portal) {
         portal.x -= 7;
-        if(p.x > portal.x + 100) game.win();
-    } else {
-        if(obs.length === 0 || obs[obs.length-1].x < canvas.width - 450) {
-            obs.push({ x: canvas.width, y: Math.random()*(canvas.height-350)+100, h: 260 });
-        }
+        if (p.x > portal.x + 50) { active = false; stageIdx = (stageIdx+1)%STAGES.length; document.getElementById('screen').style.display = 'flex'; }
     }
 
-    obs.forEach((o, i) => {
-        o.x -= (8 + game.cur);
-        if(p.x+50 > o.x && p.x < o.x+55 && (p.y < o.y || p.y+45 > o.y+o.h)) { game.active = false; document.getElementById('startScreen').style.display = 'flex'; }
+    if (!portal && (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 400)) {
+        obstacles.push({ x: canvas.width, y: Math.random()*(canvas.height-350)+100, h: 250 });
+    }
+
+    obstacles.forEach((o, i) => {
+        o.x -= (7 + stageIdx);
+        if (p.x+50 > o.x && p.x < o.x+50 && (p.y < o.y || p.y+45 > o.y+o.h)) { active = false; document.getElementById('screen').style.display = 'flex'; }
+        if (o.x < -100) obstacles.splice(i, 1);
     });
 
-    if(Math.random() < 0.02) items.push({ x: canvas.width, y: Math.random()*(canvas.height-100)+50 });
+    if (Math.random() < 0.02) items.push({ x: canvas.width, y: Math.random()*(canvas.height-100)+50 });
     items.forEach((c, i) => {
         c.x -= 8;
-        if(Math.hypot(p.x+30 - c.x, p.y+20 - c.y) < 40) { game.gold += 10; items.splice(i, 1); playSound(1000, 0.1); }
+        if (Math.hypot(p.x+30 - c.x, p.y+20 - c.y) < 40) { gold += 10; items.splice(i, 1); }
     });
 
-    if(p.y > canvas.height || p.y < -50 || p.x < enemy.x + 90) { game.active = false; document.getElementById('startScreen').style.display = 'flex'; }
-    document.getElementById('gold-val').innerText = game.gold;
-    document.getElementById('city-name').innerText = STAGES[game.cur].n;
+    if (p.y > canvas.height || p.y < -50 || p.x < enemy.x + 80) { active = false; document.getElementById('screen').style.display = 'flex'; }
+    
+    document.getElementById('gold-val').innerText = gold;
+    document.getElementById('city-val').innerText = STAGES[stageIdx].n;
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // خلفية "عالمية" سوداء مع خطوط حركة بسيطة
     ctx.fillStyle = "#050508"; ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    if(portal) {
-        ctx.fillStyle = STAGES[game.cur].c; ctx.shadowBlur = 30; ctx.beginPath(); ctx.arc(portal.x+150, portal.y+150, 150, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(portal.x+150, portal.y+150, 120, 0, Math.PI*2); ctx.fill();
+    if (portal) {
+        ctx.fillStyle = STAGES[stageIdx].c; ctx.shadowBlur = 20;
+        ctx.beginPath(); ctx.arc(portal.x+100, portal.y+100, 100, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(portal.x+100, portal.y+100, 80, 0, Math.PI*2); ctx.fill();
     }
 
-    obs.forEach(o => {
-        ctx.fillStyle = STAGES[game.cur].c; ctx.shadowBlur = 10; ctx.shadowColor = STAGES[game.cur].c;
+    obstacles.forEach(o => {
+        ctx.fillStyle = STAGES[stageIdx].c; ctx.shadowBlur = 10; ctx.shadowColor = STAGES[stageIdx].c;
         ctx.fillRect(o.x, 0, 50, o.y); ctx.fillRect(o.x, o.y+o.h, 50, canvas.height);
     });
 
-    items.forEach(c => { ctx.fillStyle = "gold"; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(c.x, c.y, 12, 0, Math.PI*2); ctx.fill(); });
+    items.forEach(c => { ctx.fillStyle = "gold"; ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, Math.PI*2); ctx.fill(); });
     
-    drawMonster(enemy.x, enemy.y, STAGES[game.cur].m);
+    drawMonster(enemy.x, enemy.y);
     drawCat(p.x, p.y);
 }
 
 function loop() { update(); draw(); requestAnimationFrame(loop); }
-window.onmousedown = () => { if(game.active) { p.v = p.jump; playSound(200, 0.1); } };
-window.ontouchstart = (e) => { e.preventDefault(); if(game.active) { p.v = p.jump; playSound(200, 0.1); } };
-game.init();
+
+window.addEventListener('mousedown', () => { if(active) p.v = p.j; });
+window.addEventListener('touchstart', (e) => { e.preventDefault(); if(active) p.v = p.j; }, {passive: false});
+
+loop();
 </script>
 </body>
 </html>
