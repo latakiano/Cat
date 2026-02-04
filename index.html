@@ -3,36 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Cat: Global Dungeon Legends</title>
+    <title>Himalayan Cat: Dungeon Legends Pro</title>
     <style>
-        :root { --neon: #ffd700; }
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Arial, sans-serif; touch-action: none; color: white; }
+        :root { --neon: #ffd700; --accent: #00f2ff; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; color: white; }
         
-        /* واجهة المستخدم الاحترافية */
-        #ui { position: absolute; top: 20px; width: 100%; display: flex; justify-content: space-around; z-index: 100; pointer-events: none; }
+        /* HUD - واجهة المعلومات */
+        #ui { position: absolute; top: 15px; width: 100%; display: flex; justify-content: space-around; z-index: 100; pointer-events: none; }
         .stat-card { 
-            background: rgba(20, 20, 30, 0.8); border: 2px solid var(--neon);
-            backdrop-filter: blur(8px); padding: 12px 25px; border-radius: 30px;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); font-weight: bold; font-size: 18px;
+            background: rgba(0, 0, 0, 0.8); border: 2px solid var(--neon);
+            backdrop-filter: blur(10px); padding: 10px 18px; border-radius: 20px; 
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); font-weight: bold; font-size: 18px;
         }
 
-        /* الشاشات المنبثقة */
+        /* الشاشات */
         .overlay { 
-            position: fixed; inset: 0; background: radial-gradient(circle at center, #1a0033 0%, #000 100%);
+            position: fixed; inset: 0; background: radial-gradient(circle, #1a0033 0%, #000 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 1000; text-align: center; transition: 0.5s;
+            z-index: 1000; text-align: center; padding: 20px;
         }
         
         .btn {
-            padding: 18px 60px; font-size: 24px; background: linear-gradient(45deg, #ffd700, #ff8c00);
+            padding: 16px 50px; font-size: 22px; background: linear-gradient(45deg, #ffd700, #ff8c00);
             border: none; border-radius: 50px; color: #000; cursor: pointer; font-weight: bold;
-            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3); transition: 0.3s; margin: 10px;
+            box-shadow: 0 8px 15px rgba(255, 215, 0, 0.3); transition: 0.3s; margin: 10px;
         }
-        .btn:hover { transform: scale(1.1); box-shadow: 0 15px 30px #ffd700; }
-        .btn-shop { background: linear-gradient(45deg, #00f2ff, #0062ff); color: #fff; box-shadow: 0 10px 20px rgba(0, 242, 255, 0.3); }
+        .btn:hover { transform: scale(1.05); box-shadow: 0 0 25px var(--neon); }
+        .btn-shop { background: linear-gradient(45deg, var(--accent), #0062ff); color: white; }
 
-        #shopUI { display: none; }
-        .shop-box { background: rgba(255,255,255,0.05); padding: 30px; border-radius: 25px; border: 1px solid var(--neon); margin: 20px; }
+        #highScoreText { color: var(--accent); font-size: 24px; margin: 10px 0; font-weight: 900; }
     </style>
 </head>
 <body>
@@ -40,24 +39,14 @@
 <div id="ui">
     <div class="stat-card">🏰 <span id="stageTitle">Loading...</span></div>
     <div class="stat-card">💰 <span id="coinScore">0</span></div>
+    <div class="stat-card" style="border-color: var(--accent);">🏆 <span id="bestScore">0</span></div>
 </div>
 
 <div id="startScreen" class="overlay">
-    <h1 id="mainTitle" style="font-size: 3rem; text-shadow: 0 0 30px #ffd700;">HIMALAYAN LEGENDS</h1>
-    <p id="subTitle" style="color: #ccc; font-size: 1.2rem;">Conquer 20 Global Dungeons</p>
+    <h1 id="mainTitle" style="font-size: 3.5rem; text-shadow: 0 0 20px var(--neon); margin-bottom: 5px;">HIMALAYAN LEGENDS</h1>
+    <div id="highScoreText">BEST: 0</div>
     <button class="btn" onclick="startGame()" id="playBtn">START MISSION</button>
-    <button class="btn btn-shop" onclick="toggleShop(true)" id="shopBtn">ARMORY (0.30$)</button>
-</div>
-
-<div id="shopUI" class="overlay">
-    <h1 id="shopTitle">UPGRADES</h1>
-    <div class="shop-box">
-        <h3>ULTIMATE CAT PAW</h3>
-        <p>Double Jump & Higher Speed</p>
-        <div style="font-size: 24px; color: #ffd700; margin: 15px;">0.30 $</div>
-        <button class="btn" onclick="buyItem()">PURCHASE</button>
-    </div>
-    <button class="btn" style="background: #333; color: #fff;" onclick="toggleShop(false)">BACK</button>
+    <button class="btn btn-shop" onclick="alert('30 Cents - Secure Gateway Loading...')" id="shopBtn">SHOP (0.30$)</button>
 </div>
 
 <canvas id="gameCanvas"></canvas>
@@ -66,39 +55,39 @@
     const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
     let audioCtx;
 
-    // --- نظام الترجمة واللغات ---
+    // --- الترجمة واللغات ---
     const isAr = navigator.language.startsWith('ar');
     const lang = {
-        ar: { start: "بدء المهمة", shop: "المتجر (0.30$)", shopT: "متجر التطويرات", dungeon: "دهليز", death: "سحقتك الوحوش!", win: "أسطورة اللاذقية!" },
-        en: { start: "START MISSION", shop: "ARMORY (0.30$)", shopT: "UPGRADES", dungeon: "Dungeon of", death: "GAME OVER!", win: "LATAKIA LEGEND!" }
+        ar: { start: "بدء المهمة", shop: "المتجر (0.30$)", best: "أفضل نتيجة: ", dungeon: "دهليز", death: "سحقتك الوحوش!", retry: "إعادة المحاولة" },
+        en: { start: "START MISSION", shop: "SHOP (0.30$)", best: "BEST SCORE: ", dungeon: "Dungeon of", death: "YOU DIED!", retry: "RETRY" }
     }[isAr ? 'ar' : 'en'];
 
-    document.getElementById('playBtn').innerText = lang.start;
-    document.getElementById('shopBtn').innerText = lang.shop;
-    document.getElementById('shopTitle').innerText = lang.shopT;
+    // --- نظام حفظ السكور ---
+    let highScore = localStorage.getItem('himalayanBest') || 0;
+    document.getElementById('bestScore').innerText = highScore;
+    document.getElementById('highScoreText').innerText = lang.best + highScore;
 
     // --- محرك الصوت ---
-    function playSound(freq, type = 'sine', duration = 0.1) {
+    function playSfx(freq, type = 'sine') {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
         osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
         gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
         osc.connect(gain).connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + duration);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
     }
 
-    // --- تعريف الـ 20 مرحلة ---
+    // --- إعداد المراحل الـ 20 ---
     const cities = ["London", "New York", "Paris", "Berlin", "Amsterdam", "Beijing", "Rome", "Moscow", "Athens", "Bucharest", "Tokyo", "Dubai", "Cairo", "Madrid", "Sydney", "Rio", "Seoul", "Istanbul", "Prague", "Latakia"];
     const colors = ["#FFFF00", "#0000FF", "#FF0000", "#00FF00", "#FFFFFF", "#00FFFF", "#8B4513", "#800000", "#800080", "#000080", "#FF4500", "#FFD700", "#C0C0C0", "#32CD32", "#1E90FF", "#FF69B4", "#00CED1", "#A52A2A", "#556B2F", "#00f2ff"];
     
     const STAGES = cities.map((city, i) => ({
         name: `${isAr ? 'دهليز' : 'Dungeon of'} ${city}`,
-        color: colors[i],
+        col: colors[i],
         monster: i === 19 ? 'lion' : ['wolf', 'ghost', 'dragon'][i % 3],
-        speed: 6.5 + (i * 0.4)
+        speed: 6.5 + (i * 0.45)
     }));
 
-    // الروابط (أيقونات شفافة احترافية)
     const assets = {
         cat: 'https://img.icons8.com/color/96/cat--v1.png',
         coin: 'https://img.icons8.com/color/48/gold-pot.png',
@@ -111,74 +100,64 @@
 
     let cur = 0, score = 0, active = false, started = false;
     let p = { x: 130, y: 0, v: 0 }, m = { x: -300, y: 0 };
-    let obstacles = [], coins = [], stageDist = 2000;
+    let obstacles = [], coins = [], stageDist = 2200;
 
     function startGame() {
         document.getElementById('startScreen').style.display = 'none';
         p.y = canvas.height / 2; p.v = 0; m.x = -300;
-        obstacles = []; coins = []; stageDist = 2000; active = true; started = false;
+        obstacles = []; coins = []; stageDist = 2200; active = true; started = false; score = 0;
         document.getElementById('stageTitle').innerText = STAGES[cur].name;
     }
-
-    function toggleShop(show) { document.getElementById('shopUI').style.display = show ? 'flex' : 'none'; }
-    function buyItem() { alert("Redirecting to Secure Payment (0.30$)..."); }
 
     function gameLoop() {
         let s = STAGES[cur];
         ctx.fillStyle = "#050508"; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         if (active && started) {
-            p.v += 0.55; p.y += p.v; 
+            p.v += 0.52; p.y += p.v; 
             m.y += (p.y - m.y) * 0.05; m.x = Math.min(p.x - 150, m.x + 0.35);
             stageDist -= s.speed/2;
 
             if (stageDist <= 0 && cur < 19) { 
-                cur++; stageDist = 2000; 
+                cur++; stageDist = 2200; 
                 document.getElementById('stageTitle').innerText = STAGES[cur].name;
-                playSound(600, 'sine', 0.3); 
             }
 
-            // توليد الأعمدة (متباعدة)
+            // الأعمدة
             if (obstacles.length === 0 || obstacles[obstacles.length-1].x < canvas.width - 550) {
                 obstacles.push({ x: canvas.width, y: Math.random()*(canvas.height-400)+100, h: 280 });
             }
 
-            // توليد الجوائز (متوازنة)
-            if (Math.random() < 0.008) coins.push({ x: canvas.width, y: Math.random()*(canvas.height-100)+50 });
+            // الجوائز (متوازنة)
+            if (Math.random() < 0.01) coins.push({ x: canvas.width, y: Math.random()*(canvas.height-100)+50 });
 
             obstacles.forEach((o, i) => {
                 o.x -= s.speed;
-                ctx.fillStyle = s.color; ctx.globalAlpha = 0.5;
+                ctx.fillStyle = s.col; ctx.globalAlpha = 0.5;
                 ctx.fillRect(o.x, 0, 55, o.y); ctx.fillRect(o.x, o.y+o.h, 55, canvas.height);
-                ctx.globalAlpha = 1;
-                
-                // كتابة اسم المدينة على العمود بجمالية
-                ctx.fillStyle = "white"; ctx.font = "bold 12px sans-serif";
+                ctx.globalAlpha = 1; ctx.fillStyle = "white"; ctx.font = "bold 12px sans-serif";
                 ctx.fillText(cities[cur].toUpperCase(), o.x + 5, o.y - 10);
 
                 if (p.x + 40 > o.x && p.x < o.x + 55 && (p.y < o.y || p.y + 45 > o.y + o.h)) die();
-                if (o.x < -100) obstacles.splice(i, 1);
             });
 
             coins.forEach((c, i) => {
                 c.x -= s.speed;
                 ctx.drawImage(img.coin, c.x, c.y, 40, 40);
                 if (Math.hypot(p.x - c.x, p.y - c.y) < 50) { 
-                    score += 10; coins.splice(i, 1); 
-                    playSound(880); // صوت قطف الجائزة
+                    score += 10; coins.splice(i, 1); playSfx(880); 
                 }
             });
 
-            if (p.y > canvas.height || p.y < -100 || p.x < m.x + 80) die();
+            if (p.y > canvas.height || p.x < m.x + 80) die();
             document.getElementById('coinScore').innerText = score;
         }
 
-        // --- رسم الوحش (يواجه القطة، تنفس 3D، بدون دائرة) ---
+        // --- رسم الوحش (يواجه القطة، بدون دوائر) ---
         let breath = Math.sin(Date.now() / 200) * 10;
         ctx.save();
         ctx.translate(m.x + 160, m.y + breath); 
         ctx.scale(-1, 1); // المواجهة الصحيحة للقطة
-        ctx.shadowBlur = 20; ctx.shadowColor = s.color;
         ctx.drawImage(img[s.monster], 0, 0, 160 + breath, 160 - breath);
         ctx.restore();
 
@@ -189,13 +168,19 @@
     }
 
     function die() {
-        active = false; playSound(100, 'sawtooth', 0.4);
+        active = false; playSfx(150, 'sawtooth');
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('himalayanBest', highScore);
+            document.getElementById('bestScore').innerText = highScore;
+        }
         document.getElementById('startScreen').style.display = 'flex';
         document.getElementById('mainTitle').innerText = lang.death;
-        document.getElementById('playBtn').innerText = isAr ? "إعادة المحاولة" : "RETRY";
+        document.getElementById('highScoreText').innerText = lang.best + highScore;
+        document.getElementById('playBtn').innerText = lang.retry;
     }
 
-    const jump = () => { if (active) { started = true; p.v = -9.5; playSound(400); } }
+    const jump = () => { if (active) { started = true; p.v = -9.5; playSfx(450); } }
     window.onmousedown = jump; window.ontouchstart = (e) => { e.preventDefault(); jump(); };
     window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
     window.onresize();
