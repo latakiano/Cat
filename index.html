@@ -3,32 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Legends: The 45 Heroes</title>
+    <title>Himalayan Legends: Kingdom of Mercy</title>
     <style>
         :root { --gold: #ffd700; --neon: #00f2ff; }
-        body { margin: 0; overflow: hidden; background: #050508; font-family: 'Arial', sans-serif; touch-action: none; color: white; }
+        body { margin: 0; overflow: hidden; background: #020205; font-family: 'Arial', sans-serif; touch-action: none; color: white; }
         #ui { position: absolute; top: 10px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; pointer-events: none; }
-        .stat-box { background: rgba(0,0,0,0.85); border: 2px solid var(--gold); padding: 8px 15px; border-radius: 12px; font-weight: bold; margin: 3px; display: inline-block; box-shadow: 0 0 10px rgba(255,215,0,0.3); }
-        #prog-wrap { width: 80%; height: 12px; background: #222; border-radius: 6px; overflow: hidden; border: 1px solid #444; margin-top: 8px; }
-        #prog-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--neon), #0066ff); box-shadow: 0 0 15px var(--neon); }
-        .screen { position: fixed; inset: 0; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; padding: 20px; }
-        .btn { padding: 18px 50px; font-size: 22px; background: var(--gold); border: none; border-radius: 50px; color: #000; cursor: pointer; font-weight: bold; margin: 10px; transition: 0.3s; box-shadow: 0 5px 20px rgba(255,215,0,0.4); }
-        .btn:active { transform: scale(0.95); }
+        .stat-box { background: rgba(0,0,0,0.9); border: 2px solid var(--gold); padding: 8px 18px; border-radius: 15px; font-weight: bold; box-shadow: 0 0 15px rgba(255,215,0,0.3); }
+        #prog-bar { width: 0%; height: 12px; background: linear-gradient(90deg, #00f2ff, #0066ff); box-shadow: 0 0 10px #00f2ff; transition: 0.2s; }
+        .screen { position: fixed; inset: 0; background: rgba(0,0,0,0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; }
+        .btn { padding: 18px 60px; font-size: 24px; background: var(--gold); border: none; border-radius: 50px; color: #000; cursor: pointer; font-weight: bold; margin: 10px; box-shadow: 0 5px 25px rgba(255,215,0,0.5); }
     </style>
 </head>
 <body>
 
 <div id="ui">
-    <div>
+    <div style="display: flex; gap: 10px; margin-bottom: 5px;">
         <div class="stat-box">🌍 <span id="city-name">LONDON</span></div>
         <div class="stat-box">💰 $ <span id="gold-val">0</span></div>
     </div>
-    <div id="prog-wrap"><div id="prog-bar"></div></div>
+    <div style="width: 85%; height: 12px; background: #222; border-radius: 6px; overflow: hidden; border: 1px solid #444;">
+        <div id="prog-bar"></div>
+    </div>
 </div>
 
 <div id="startScreen" class="screen">
-    <h1 id="title" style="color: var(--gold); margin: 0; font-size: 32px;">أساطير الهيمالايا: رحلة الـ 45 قطة</h1>
-    <p id="desc" style="color: var(--neon); font-size: 18px;">المرحلة القادمة: LONDON</p>
+    <h1 style="color: var(--gold); font-size: 30px;">مغامرة منقذ القطط الـ 45</h1>
+    <p id="msg" style="color: var(--neon); font-size: 18px;">المرحلة القادمة: LONDON</p>
     <button class="btn" onclick="game.start()">دخول الكهف</button>
 </div>
 
@@ -48,13 +48,13 @@ let audioCtx;
 function playSound(f, type, d) {
     if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.type = type; o.frequency.value = f; g.gain.value = 0.1;
+    o.type = type; o.frequency.value = f; g.gain.value = 0.05;
     o.connect(g).connect(audioCtx.destination);
     o.start(); o.stop(audioCtx.currentTime + d);
 }
 
 let game = {
-    active: false, gold: 0, cur: 0, dist: 0, target: 2500,
+    active: false, gold: 0, cur: 0, dist: 0, target: 2000,
     init() { this.resize(); window.onresize = () => this.resize(); this.loop(); },
     resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; },
     start() { 
@@ -65,34 +65,29 @@ let game = {
     win() {
         this.active = false; this.cur = (this.cur + 1) % STAGES.length;
         document.getElementById('startScreen').style.display = 'flex';
-        document.getElementById('title').innerText = "أحسنت! تم عبور الكهف";
-        document.getElementById('desc').innerText = "المرحلة القادمة: " + STAGES[this.cur].n;
+        document.getElementById('msg').innerText = "تم اختراق الكهف بنجاح! الوجهة: " + STAGES[this.cur].n;
     }
 };
 
-let p = { x: 130, y: 0, v: 0, g: 0.55, jump: -11 };
+let p = { x: 150, y: 0, v: 0, g: 0.55, jump: -11 };
 let enemy = { x: -400, y: 0 };
 let obs = [], items = [], portal = null;
 
 function drawCat(x, y) {
     ctx.save(); ctx.translate(x, y);
-    // الجسم (أبيض) والذيل
     ctx.fillStyle = "white";
-    ctx.beginPath(); ctx.ellipse(30, 25, 25, 18, 0, 0, Math.PI*2); ctx.fill();
-    ctx.lineWidth = 5; ctx.strokeStyle = "white"; ctx.beginPath(); ctx.moveTo(5, 25); ctx.quadraticCurveTo(-10, 0, 5, -5); ctx.stroke();
-    // الأرجل (4 أرجل قوية)
-    ctx.fillRect(12, 35, 7, 12); ctx.fillRect(22, 38, 7, 12);
-    ctx.fillRect(35, 38, 7, 12); ctx.fillRect(45, 35, 7, 12);
+    ctx.beginPath(); ctx.ellipse(30, 25, 25, 18, 0, 0, Math.PI*2); ctx.fill(); // الجسم
+    ctx.lineWidth = 4; ctx.strokeStyle = "white"; ctx.beginPath(); ctx.moveTo(5, 25); ctx.quadraticCurveTo(-15, 0, 0, -5); ctx.stroke(); // الذيل
+    // الأرجل البارزة
+    ctx.fillRect(10, 35, 8, 14); ctx.fillRect(45, 35, 8, 14); 
     // الرأس
-    ctx.beginPath(); ctx.arc(55, 15, 14, 0, Math.PI*2); ctx.fill();
-    // الأذنين (بني غامق كما طلبت)
+    ctx.beginPath(); ctx.arc(55, 15, 15, 0, Math.PI*2); ctx.fill();
+    // الأذنين بني غامق وواضحة
     ctx.fillStyle = "#3e2723"; 
-    ctx.beginPath(); ctx.moveTo(45, 5); ctx.lineTo(42, -8); ctx.lineTo(52, 2); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(65, 5); ctx.lineTo(68, -8); ctx.lineTo(58, 2); ctx.fill();
-    // العيون الزرقاء والشارب
-    ctx.fillStyle = "#00b0ff"; ctx.beginPath(); ctx.arc(60, 12, 3, 0, Math.PI*2); ctx.fill();
-    ctx.strokeStyle = "#ddd"; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(65, 18); ctx.lineTo(75, 15); ctx.moveTo(65, 20); ctx.lineTo(75, 20); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(45, 5); ctx.lineTo(40, -12); ctx.lineTo(52, 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(65, 5); ctx.lineTo(70, -12); ctx.lineTo(58, 2); ctx.fill();
+    // العين الزرقاء
+    ctx.fillStyle = "#00f2ff"; ctx.beginPath(); ctx.arc(62, 12, 3, 0, Math.PI*2); ctx.fill();
     ctx.restore();
 }
 
@@ -100,35 +95,34 @@ function drawMonster(x, y, type) {
     ctx.save(); ctx.translate(x, y);
     ctx.fillStyle = STAGES[game.cur].c; ctx.shadowBlur = 20; ctx.shadowColor = STAGES[game.cur].c;
     if(type === "DRAGON") {
-        ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(140, 20); ctx.lineTo(100, 45); ctx.lineTo(140, 70); ctx.lineTo(0,90); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(150, 20); ctx.lineTo(100, 45); ctx.lineTo(150, 70); ctx.lineTo(0,90); ctx.fill();
     } else if(type === "SPIDER") {
         ctx.beginPath(); ctx.arc(60, 45, 35, 0, Math.PI*2); ctx.fill();
-        for(let i=0; i<4; i++) { ctx.fillRect(10, 20+i*18, 100, 5); }
+        for(let i=0; i<4; i++) ctx.fillRect(0, 20+i*18, 120, 5);
     } else if(type === "SHARK") {
-        ctx.beginPath(); ctx.ellipse(70, 45, 80, 35, 0, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(50, 15); ctx.lineTo(75, -20); ctx.lineTo(100, 15); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(70, 45, 90, 35, 0, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(60, 15); ctx.lineTo(80, -25); ctx.lineTo(100, 15); ctx.fill();
     } else { // الأسد
-        ctx.beginPath(); ctx.arc(70, 45, 50, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(70, 45, 55, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = "#ff8f00"; ctx.beginPath(); ctx.arc(70, 45, 35, 0, Math.PI*2); ctx.fill();
     }
-    // الأسنان الحادة (بيضاء)
-    ctx.fillStyle = "white"; for(let i=0; i<4; i++) ctx.fillRect(105+i*8, 40, 6, 12);
-    ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(90, 25, 8, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "white"; for(let i=0; i<4; i++) ctx.fillRect(110+i*8, 40, 6, 12); // أسنان
+    ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(90, 25, 8, 0, Math.PI*2); ctx.fill(); // عين
     ctx.restore();
 }
 
 function update() {
     if(!game.active) return;
     p.v += p.g; p.y += p.v;
-    enemy.y += (p.y - enemy.y) * 0.06;
-    enemy.x = Math.min(p.x - 120, enemy.x + (0.6 + game.cur * 0.15));
+    enemy.y += (p.y - enemy.y) * 0.05;
+    enemy.x = Math.min(p.x - 140, enemy.x + (0.7 + game.cur * 0.15));
     game.dist += 4;
     document.getElementById('prog-bar').style.width = (game.dist/game.target*100) + "%";
 
     if(game.dist >= game.target && !portal) portal = { x: canvas.width, y: canvas.height/2 - 150 };
 
     if(portal) {
-        portal.x -= 6;
+        portal.x -= 7;
         if(p.x > portal.x + 100) game.win();
     } else {
         if(obs.length === 0 || obs[obs.length-1].x < canvas.width - 450) {
@@ -137,35 +131,32 @@ function update() {
     }
 
     obs.forEach((o, i) => {
-        o.x -= (7 + game.cur);
-        if(p.x+55 > o.x && p.x < o.x+55 && (p.y < o.y || p.y+45 > o.y+o.h)) { game.active = false; document.getElementById('startScreen').style.display = 'flex'; }
+        o.x -= (8 + game.cur);
+        if(p.x+50 > o.x && p.x < o.x+55 && (p.y < o.y || p.y+45 > o.y+o.h)) { game.active = false; document.getElementById('startScreen').style.display = 'flex'; }
     });
 
     if(Math.random() < 0.02) items.push({ x: canvas.width, y: Math.random()*(canvas.height-100)+50 });
     items.forEach((c, i) => {
-        c.x -= 7;
-        if(Math.hypot(p.x+30 - c.x, p.y+20 - c.y) < 40) { game.gold += 10; items.splice(i, 1); playSound(900, 'sine', 0.1); }
+        c.x -= 8;
+        if(Math.hypot(p.x+30 - c.x, p.y+20 - c.y) < 40) { game.gold += 10; items.splice(i, 1); playSound(1000, 'sine', 0.1); }
     });
 
-    if(p.y > canvas.height || p.y < -50 || p.x < enemy.x + 85) { game.active = false; document.getElementById('startScreen').style.display = 'flex'; }
+    if(p.y > canvas.height || p.y < -50 || p.x < enemy.x + 95) { game.active = false; document.getElementById('startScreen').style.display = 'flex'; }
     document.getElementById('gold-val').innerText = game.gold;
 }
 
 function draw() {
-    ctx.fillStyle = "#050508"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+    ctx.fillStyle = "#020205"; ctx.fillRect(0, 0, canvas.width, canvas.height);
     if(portal) {
         let grad = ctx.createRadialGradient(portal.x+150, portal.y+150, 20, portal.x+150, portal.y+150, 150);
-        grad.addColorStop(0, "black"); grad.addColorStop(1, STAGES[game.cur].c);
+        grad.addColorStop(0, "white"); grad.addColorStop(0.3, STAGES[game.cur].c); grad.addColorStop(1, "black");
         ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(portal.x+150, portal.y+150, 150, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "white"; ctx.font = "bold 20px Arial"; ctx.fillText("الكهف التالي", portal.x+100, portal.y+150);
+        ctx.fillStyle = "white"; ctx.font = "bold 20px Arial"; ctx.fillText("بوابة الكهف", portal.x+100, portal.y+150);
     }
-
     obs.forEach(o => {
-        ctx.fillStyle = STAGES[game.cur].c; ctx.shadowBlur = 10; ctx.shadowColor = STAGES[game.cur].c;
+        ctx.fillStyle = STAGES[game.cur].c; ctx.shadowBlur = 15; ctx.shadowColor = STAGES[game.cur].c;
         ctx.fillRect(o.x, 0, 55, o.y); ctx.fillRect(o.x, o.y+o.h, 55, canvas.height); ctx.shadowBlur = 0;
     });
-
     items.forEach(c => { ctx.fillStyle = "gold"; ctx.beginPath(); ctx.arc(c.x, c.y, 12, 0, Math.PI*2); ctx.fill(); });
     drawMonster(enemy.x, enemy.y, STAGES[game.cur].m);
     drawCat(p.x, p.y);
@@ -173,8 +164,8 @@ function draw() {
 }
 
 function loop() { update(); draw(); requestAnimationFrame(loop); }
-window.onmousedown = () => { if(game.active) { p.v = p.jump; playSound(180, 'triangle', 0.2); } };
-window.ontouchstart = (e) => { e.preventDefault(); if(game.active) { p.v = p.jump; playSound(180, 'triangle', 0.2); } };
+window.onmousedown = () => { if(game.active) { p.v = p.jump; playSound(180, 'triangle', 0.15); } };
+window.ontouchstart = (e) => { e.preventDefault(); if(game.active) { p.v = p.jump; playSound(180, 'triangle', 0.15); } };
 game.init();
 </script>
 </body>
