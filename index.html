@@ -3,44 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Legend: 3D Monsters & Leaderboard</title>
+    <title>Himalayan Cat vs Wolf 3D</title>
     <style>
-        :root { --gold: #FFD700; --cyan: #00F2FF; --red: #ff3333; --glass: rgba(255, 255, 255, 0.1); }
-        body { margin: 0; background: #010105; overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; }
+        :root { --gold: #FFD700; --cyan: #00F2FF; --red: #ff3333; }
+        body { margin: 0; background: #050510; overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; }
         
-        /* واجهة النتائج والترتيب */
-        .leaderboard { margin-top: 15px; background: var(--glass); padding: 10px; border-radius: 10px; border: 1px solid var(--cyan); font-size: 14px; width: 100%; }
-        .rank-item { display: flex; justify-content: space-between; padding: 3px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .rank-item.me { color: var(--gold); font-weight: bold; background: rgba(255,215,0,0.2); }
+        /* واجهة الترتيب */
+        .leaderboard { margin-top: 15px; background: rgba(0,242,255,0.05); padding: 10px; border-radius: 15px; border: 1px solid var(--cyan); }
+        .rank-item { display: flex; justify-content: space-between; padding: 5px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 14px; }
+        .rank-item.me { color: var(--gold); background: rgba(255,215,0,0.1); border-radius: 5px; }
 
-        #hud { position: fixed; top: 0; width: 100%; padding: 10px; display: flex; justify-content: space-around; z-index: 100; background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--gold); }
-        .stat-card { background: var(--glass); padding: 5px 15px; border-radius: 15px; border: 1px solid var(--gold); }
+        #hud { position: fixed; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-around; z-index: 100; background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--cyan); }
+        .stat-card { background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; border: 1px solid var(--gold); font-weight: bold; }
 
-        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); z-index: 1000; text-align: center; }
-        .window { background: #0a0a1a; padding: 25px; border-radius: 30px; border: 3px solid var(--cyan); width: 85%; max-width: 400px; box-shadow: 0 0 50px #000; }
+        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.92); z-index: 1000; text-align: center; }
+        .window { background: #0a0a1a; padding: 25px; border-radius: 30px; border: 3px solid var(--gold); width: 85%; max-width: 400px; box-shadow: 0 0 40px rgba(0,242,255,0.2); }
         
-        .btn { padding: 15px; font-size: 18px; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #000; margin-top: 10px; width: 100%; box-shadow: 0 5px 15px rgba(255,215,0,0.4); }
+        .btn { padding: 16px; font-size: 18px; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #000; margin-top: 15px; width: 100%; }
         
-        #dist-track { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 70%; height: 8px; background: #222; border-radius: 10px; border: 1px solid var(--cyan); overflow: hidden; }
-        #bar-fill { width: 0%; height: 100%; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); transition: 0.2s; }
+        #dist-track { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 70%; height: 10px; background: #111; border-radius: 10px; border: 1px solid var(--cyan); overflow: hidden; }
+        #bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #0088ff, var(--cyan)); box-shadow: 0 0 15px var(--cyan); }
     </style>
 </head>
 <body>
 
 <div id="hud">
-    <div class="stat-card">🟡 <span id="gold-val">0</span></div>
-    <div class="stat-card">🏆 STAGE: <span id="stage-val">1</span></div>
+    <div class="stat-card">GOLD: <span id="gold-val">0</span></div>
+    <div class="stat-card">STAGE: <span id="stage-val">1</span></div>
 </div>
 
 <div id="dist-track"><div id="bar-fill"></div></div>
 
 <div id="main-overlay" class="overlay">
     <div class="window">
-        <div style="color: var(--gold); font-weight: bold;" id="m-en">CAT ADVENTURE TO SURVIVE</div>
-        <div style="font-size: 14px;" id="m-ar">مغامرة القطة للنجاة من الوحوش</div>
+        <div style="font-size: 22px; color: var(--gold); font-weight: bold;">CAT ADVENTURE TO SURVIVE</div>
+        <div style="font-size: 16px; margin-bottom: 10px;">مغامرة القطة للنجاة من الوحوش</div>
         
         <div id="rank-box" class="leaderboard" style="display:none;">
-            <div style="border-bottom: 1px solid var(--gold); margin-bottom: 5px;">TOP PLAYERS / ترتيب اللاعبين</div>
+            <div style="font-weight: bold; color: var(--cyan); border-bottom: 1px solid var(--cyan); margin-bottom: 5px;">LEADERBOARD / الترتيب</div>
             <div id="rank-list"></div>
         </div>
 
@@ -56,116 +56,117 @@ let active = false, stage = 1, gold = 0, distance = 0, targetDist = 3000;
 let frame = 0, stars = [], obs = [], coins = [], caveX = -1000;
 let lastObsX = 0;
 
-let p = { x: 100, y: 0, v: 0, g: 0.45, j: -9, legAngle: 0 };
-let monster = { x: -200, y: 0, type: "🐺" };
-const monsterTypes = ["🐺", "👹", "🐲", "👾", "🦁", "🦇", "🦂", "🐍", "🦍", "🐘"];
-
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-let audio;
-
-function playSfx(freq, type, dur, vol=0.3) {
-    if(!audio) audio = new AudioCtx();
-    if(audio.state === 'suspended') audio.resume();
-    const o = audio.createOscillator(), g = audio.createGain();
-    o.type = type; o.connect(g); g.connect(audio.destination);
-    o.frequency.setValueAtTime(freq, audio.currentTime);
-    g.gain.setValueAtTime(vol, audio.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + dur);
-    o.start(); o.stop(audio.currentTime + dur);
-}
+let p = { x: 120, y: 0, v: 0, g: 0.45, j: -9, anim: 0 };
+let wolf = { x: -200, y: 0 };
 
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.onresize = resize; resize();
 
-for(let i=0; i<60; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2});
+for(let i=0; i<80; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*1.5});
 
 function startGame() {
     active = false;
-    obs = []; coins = []; distance = 0; caveX = -1000; lastObsX = 0;
-    p.y = canvas.height / 2; p.v = 0;
-    monster.type = monsterTypes[(stage - 1) % monsterTypes.length];
+    obs = []; coins = []; distance = 0; caveX = -1000;
+    p.y = canvas.height/2; p.v = 0;
     targetDist = 2500 + (stage * 1000);
     document.getElementById('main-overlay').style.display = 'none';
     active = true;
     animate();
 }
 
-window.onmousedown = () => { if(active) { p.v = p.j; playSfx(450, 'square', 0.15); } };
-window.ontouchstart = (e) => { if(active) { p.v = p.j; playSfx(450, 'square', 0.15); } e.preventDefault(); };
+window.onmousedown = () => { if(active) p.v = p.j; };
+window.ontouchstart = (e) => { if(active) p.v = p.j; e.preventDefault(); };
 
-function draw3DCat(x, y) {
+// رسم القطة ثلاثية الأبعاد (3D Himalayan)
+function drawHimalayan(x, y) {
     ctx.save(); ctx.translate(x, y);
-    p.legAngle += 0.2;
-    
-    // الأرجل (تتحرك)
-    ctx.strokeStyle = "#3E2723"; ctx.lineWidth = 4;
-    for(let i of [-1, 1]) {
-        ctx.beginPath();
-        ctx.moveTo(i*10, 10);
-        ctx.lineTo(i*10 + Math.sin(p.legAngle)*10, 25);
-        ctx.stroke();
-    }
+    p.anim += 0.15;
+    let bounce = Math.sin(p.anim) * 3;
 
-    // جسم القطة (تأثير 3D بسيط بالظلال)
-    let grad = ctx.createRadialGradient(-5, -5, 5, 0, 0, 25);
-    grad.addColorStop(0, "#fff"); grad.addColorStop(1, "#FDF5E6");
-    ctx.fillStyle = grad;
-    ctx.beginPath(); ctx.ellipse(0, 0, 30, 20, 0, 0, Math.PI*2); ctx.fill();
+    // الذيل الكثيف
+    ctx.fillStyle = "#D2B48C";
+    ctx.beginPath(); ctx.ellipse(-25, 5 + bounce, 15, 8, Math.PI/4, 0, 7); ctx.fill();
 
-    // العيون اللامعة
-    ctx.fillStyle = "#3E2723"; ctx.beginPath(); ctx.arc(22, -8, 12, 0, 7); ctx.fill();
-    ctx.shadowBlur = 15; ctx.shadowColor = var(--cyan);
-    ctx.fillStyle = var(--cyan); ctx.beginPath(); ctx.arc(26, -10, 3, 0, 7); ctx.fill();
-    ctx.shadowBlur = 0;
+    // الجسم (تدرج لوني مجسم)
+    let bodyGrad = ctx.createRadialGradient(0, 0, 5, 0, 0, 25);
+    bodyGrad.addColorStop(0, "#fff"); bodyGrad.addColorStop(1, "#EEDCBB");
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath(); ctx.ellipse(0, bounce, 28, 20, 0, 0, 7); ctx.fill();
+
+    // الأطراف البنية
+    ctx.fillStyle = "#3E2723";
+    ctx.fillRect(-15, 15+bounce, 6, 10); ctx.fillRect(10, 15+bounce, 6, 10);
+
+    // الرأس والعيون اللامعة
+    ctx.beginPath(); ctx.arc(22, -5 + bounce, 12, 0, 7); ctx.fill();
+    ctx.fillStyle = "#00F2FF"; ctx.shadowBlur = 10; ctx.shadowColor = "#00F2FF";
+    ctx.beginPath(); ctx.arc(26, -8 + bounce, 2.5, 0, 7); ctx.fill();
     ctx.restore();
 }
 
-function draw3DMonster(x, y) {
-    ctx.save();
-    ctx.shadowBlur = 20; ctx.shadowColor = "red";
-    ctx.font = "80px Arial";
-    // تأثير طبقات لجعل الوحش يبدو أضخم
-    ctx.globalAlpha = 0.3; ctx.fillText(monster.type, x-5, y+5);
-    ctx.globalAlpha = 1.0; ctx.fillText(monster.type, x, y);
+// رسم الذئب ثلاثي الأبعاد (3D Wolf)
+function drawWolf(x, y) {
+    ctx.save(); ctx.translate(x, y);
+    let wAnim = Math.sin(Date.now()*0.005) * 5;
+
+    // الفراء المجسم
+    let wolfGrad = ctx.createLinearGradient(0, 0, 0, 40);
+    wolfGrad.addColorStop(0, "#444"); wolfGrad.addColorStop(1, "#111");
+    ctx.fillStyle = wolfGrad;
+    
+    // جسم الذئب
+    ctx.beginPath(); ctx.ellipse(0, wAnim, 40, 22, 0, 0, 7); ctx.fill();
+    
+    // الرأس المزمجر
+    ctx.beginPath();
+    ctx.moveTo(30, -5 + wAnim); ctx.lineTo(60, 0 + wAnim); 
+    ctx.lineTo(30, 15 + wAnim); ctx.fill();
+
+    // العين الحمراء المتوهجة
+    ctx.fillStyle = "red"; ctx.shadowBlur = 15; ctx.shadowColor = "red";
+    ctx.beginPath(); ctx.arc(42, -2 + wAnim, 4, 0, 7); ctx.fill();
+    
+    // الذيل
+    ctx.fillStyle = "#222";
+    ctx.beginPath(); ctx.ellipse(-45, wAnim, 18, 7, -Math.PI/6, 0, 7); ctx.fill();
     ctx.restore();
 }
 
 function animate() {
     if(!active) return;
-    ctx.fillStyle = "#020208"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050515"; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    stars.forEach(s => { s.x -= 0.5; if(s.x < 0) s.x = canvas.width; ctx.fillStyle="#fff"; ctx.fillRect(s.x, s.y, s.r, s.r); });
+    ctx.fillStyle = "white";
+    stars.forEach(s => { s.x -= 0.3; if(s.x < 0) s.x = canvas.width; ctx.fillRect(s.x, s.y, s.r, s.r); });
 
     p.v += p.g; p.y += p.v;
     distance += 6;
     document.getElementById('bar-fill').style.width = Math.min(100, (distance/targetDist)*100) + "%";
 
-    draw3DCat(p.x, p.y);
-    monster.x = p.x - 170 + Math.sin(Date.now()*0.005)*25;
-    monster.y += (p.y - monster.y) * 0.05;
-    draw3DMonster(monster.x, monster.y + 20);
+    drawHimalayan(p.x, p.y);
+    wolf.x = p.x - 180 + Math.sin(Date.now()*0.002)*20;
+    wolf.y += (p.y - wolf.y) * 0.06;
+    drawWolf(wolf.x, wolf.y);
 
     if(Math.random() < 0.02) coins.push({x: canvas.width, y: Math.random()*canvas.height});
     coins.forEach((c, i) => {
         c.x -= 6; ctx.fillStyle = "gold"; ctx.shadowBlur=10; ctx.shadowColor="gold";
         ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, 7); ctx.fill(); ctx.shadowBlur=0;
-        if(Math.hypot(p.x-c.x, p.y-c.y) < 40) { coins.splice(i,1); gold+=50; playSfx(1200, 'sine', 0.2); document.getElementById('gold-val').innerText = gold; }
+        if(Math.hypot(p.x-c.x, p.y-c.y) < 40) { coins.splice(i,1); gold+=50; document.getElementById('gold-val').innerText = gold; }
     });
 
-    if(distance > 500 && distance < targetDist - 800) {
-        if(canvas.width - lastObsX > 350) {
-            if(Math.random() < 0.03) {
-                let h = Math.random()*(canvas.height-300);
-                let col = `hsl(${(stage*80)%360}, 80%, 50%)`;
-                obs.push({x: canvas.width, y: 0, h: h, c: col});
-                obs.push({x: canvas.width, y: h+240, h: canvas.height, c: col});
-                lastObsX = canvas.width;
-            }
+    if(distance > 500 && distance < targetDist - 800 && canvas.width - lastObsX > 350) {
+        if(Math.random() < 0.03) {
+            let h = Math.random()*(canvas.height-300);
+            let col = `hsl(${(stage*90)%360}, 70%, 50%)`;
+            obs.push({x: canvas.width, y: 0, h: h, c: col});
+            obs.push({x: canvas.width, y: h+240, h: canvas.height, c: col});
+            lastObsX = canvas.width;
         }
     }
     obs.forEach((o, i) => {
         o.x -= (6 + stage*0.4);
-        if(o === obs[obs.length-1]) lastObsX = o.x; 
+        if(o === obs[obs.length-1]) lastObsX = o.x;
         ctx.fillStyle = o.c; ctx.fillRect(o.x, o.y, 50, o.h);
         if(p.x+20 > o.x && p.x-20 < o.x+50 && p.y+15 > o.y && p.y-15 < o.y+o.h) end(false);
     });
@@ -176,50 +177,36 @@ function animate() {
         ctx.fillStyle = "#333"; ctx.fillRect(caveX, p.y-80, 140, 120);
         if(p.x > caveX + 70) end(true);
     }
-
     if(p.y > canvas.height || p.y < 0) end(false);
     requestAnimationFrame(animate);
 }
 
 function end(win) {
     active = false;
-    const ov = document.getElementById('main-overlay');
-    const tEn = document.getElementById('m-en');
-    const tAr = document.getElementById('m-ar');
-    const btn = document.getElementById('action-btn');
-
     document.getElementById('rank-box').style.display = 'block';
-    updateLeaderboard();
-
+    updateRanks();
+    const ov = document.getElementById('main-overlay');
+    const btn = document.getElementById('action-btn');
     if(win) {
-        tEn.innerText = "STAGE " + stage + " CLEARED";
-        tAr.innerText = "نجحت بتجاوز المرحلة " + stage;
-        tEn.style.color = "var(--gold)";
-        btn.innerText = "NEXT STAGE / ابدأ اللعب";
+        ov.querySelector('div').innerText = "STAGE " + stage + " CLEARED";
+        btn.innerText = "START NEXT STAGE / ابدأ اللعب";
         stage++;
     } else {
-        tEn.innerText = "YOU LOST";
-        tAr.innerText = "لقد التهمك الوحش الجائع";
-        tEn.style.color = "var(--red)";
+        ov.querySelector('div').innerText = "YOU LOST / التهمك الوحش";
         btn.innerText = "TRY AGAIN / اعد المحاولة";
     }
     document.getElementById('stage-val').innerText = stage;
     ov.style.display = 'flex';
 }
 
-function updateLeaderboard() {
-    const names = ["KingCat", "Speedy", "Himalayan_Fan", "CatLover", "Shadow"];
-    let listHTML = "";
-    let myRank = Math.floor(Math.random() * 5) + 1; // محاكاة رتبة اللاعب
-    
-    names.forEach((name, i) => {
-        let isMe = (i + 1 === myRank);
-        listHTML += `<div class="rank-item ${isMe ? 'me' : ''}">
-            <span>${i+1}. ${isMe ? 'انت (You)' : name}</span>
-            <span>${isMe ? gold : (5000 - i*1000)} pts</span>
-        </div>`;
+function updateRanks() {
+    const players = ["Champion", "WolfHunter", "CatQueen", "Speedy", "Legend"];
+    let html = "";
+    players.forEach((n, i) => {
+        let isMe = (i === 2);
+        html += `<div class="rank-item ${isMe?'me':''}"><span>${i+1}. ${isMe?'أنت (You)':n}</span><span>${isMe?gold:(5000-i*800)}</span></div>`;
     });
-    document.getElementById('rank-list').innerHTML = listHTML;
+    document.getElementById('rank-list').innerHTML = html;
 }
 </script>
 </body>
