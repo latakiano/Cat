@@ -3,136 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Cat: The Journey Home</title>
+    <title>Himalayan Empire 2026</title>
     <style>
-        :root { --gold: #ffd700; --snow: #f0f0f0; }
-        body { margin: 0; background: #050510; overflow: hidden; font-family: 'Arial', sans-serif; touch-action: none; }
-        #game-ui { position: fixed; top: 10px; width: 100%; display: flex; justify-content: space-around; z-index: 50; color: white; font-weight: bold; pointer-events: none; }
-        .bar-container { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80%; height: 10px; background: rgba(255,255,255,0.2); border-radius: 5px; overflow: hidden; }
-        #progress-bar { width: 0%; height: 100%; background: var(--gold); transition: 0.1s; }
-        #menu { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: var(--gold); }
-        .btn { padding: 15px 60px; font-size: 22px; background: var(--gold); border: none; border-radius: 30px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        :root { --gold: #FFD700; --neon: #00F2FF; --bg: #020205; }
+        body { margin: 0; background: var(--bg); overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; }
+        
+        /* واجهة الإبداع (HUD) */
+        #hud { position: fixed; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-around; z-index: 100; background: rgba(0,0,0,0.5); border-bottom: 2px solid var(--gold); }
+        .stat { background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 10px; font-weight: bold; border: 1px solid var(--gold); }
+
+        /* شاشات المتجر والقائمة */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+        .panel { background: #1a1a2e; padding: 30px; border-radius: 20px; border: 3px solid var(--gold); text-align: center; width: 80%; max-width: 400px; }
+        .btn { padding: 12px 30px; margin: 10px; background: var(--gold); border: none; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 18px; color: #000; }
+        
+        /* المتجر */
+        #shop-panel { display: none; }
+        .item { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-<div id="game-ui">
-    <div>Stage: <span id="stg-val">1</span></div>
-    <div>Gold: <span id="gld-val">0</span></div>
-</div>
-<div class="bar-container"><div id="progress-bar"></div></div>
-
-<div id="menu">
-    <h1 style="font-size: 35px;">HIMALAYAN CAT 2026</h1>
-    <p>Help the cat reach the Hut!</p>
-    <button class="btn" onclick="start()">START GAME</button>
+<div id="hud">
+    <div class="stat">المرحلة: <span id="lvl-txt">1</span></div>
+    <div class="stat">الذهب: <span id="gld-txt">0</span></div>
+    <div class="stat">الترتيب: #<span id="rank-txt">450</span></div>
 </div>
 
-<canvas id="c"></canvas>
+<div id="start-screen" class="overlay">
+    <div class="panel">
+        <h1 style="color: var(--gold)">واجهة الإبداع</h1>
+        <button class="btn" onclick="init()">ابدأ اللعب</button>
+        <button class="btn" style="background: #00F2FF" onclick="showShop()">المتجر</button>
+    </div>
+</div>
+
+<div id="shop-panel" class="overlay">
+    <div class="panel">
+        <h2>متجر القطط الملكي</h2>
+        <div class="item"><span>قطة هملايا سريعة</span><button onclick="buy(1, 100)">100 🟡</button></div>
+        <div class="item"><span>قطة ملكية صلبة</span><button onclick="buy(2, 500)">500 🟡</button></div>
+        <button class="btn" onclick="hideShop()">إغلاق</button>
+    </div>
+</div>
+
+<canvas id="game"></canvas>
 
 <script>
-const cvs = document.getElementById('c'), ctx = cvs.getContext('2d');
-let active = false, stage = 1, gold = 0, distance = 0, maxDist = 3000;
-let frame = 0;
+const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
+let active = false, stage = 1, gold = 0, rank = 450, frame = 0;
+let player = { x: 100, y: 0, dy: 0, gravity: 0.5, jump: -9, speed: 4, type: 0 };
+let coins = [], obstacles = [];
 
-// إعدادات القطة (الهملايا: بيضاء مع أذنين داكنة)
-let p = { x: 100, y: 0, v: 0, g: 0.5, j: -8, w: 60, h: 45, speedX: 2 };
-let wolf = { x: -200, y: 0 };
-let obs = [], hut = { x: -1000, y: 0, show: false };
+// نظام الصوت (صوت قفز إلكتروني)
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playJumpSound() {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = 'triangle'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+}
 
-function resize() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.onresize = resize; resize();
 
-function start() {
-    document.getElementById('menu').style.display = 'none';
-    p.y = cvs.height / 2;
-    active = true;
-    requestAnimationFrame(loop);
+function init() { document.getElementById('start-screen').style.display = 'none'; active = true; player.y = 300; loop(); }
+function showShop() { document.getElementById('shop-panel').style.display = 'flex'; }
+function hideShop() { document.getElementById('shop-panel').style.display = 'none'; }
+
+function buy(type, price) {
+    if(gold >= price) { gold -= price; player.type = type; alert("تم الشراء!"); updateHUD(); }
+    else { alert("الذهب غير كافٍ! اجمع المزيد من المراحل."); }
 }
 
-// اللمس يزيد السرعة (Impulse Physics)
-window.onmousedown = () => { if(active) { p.v = p.j; p.speedX = Math.min(8, p.speedX + 0.5); } };
-window.ontouchstart = (e) => { if(active) { p.v = p.j; p.speedX = Math.min(8, p.speedX + 0.5); } e.preventDefault(); };
-
-function drawCat(x, y) {
-    ctx.save();
-    ctx.translate(x, y);
-    // جسم القطة (هملايا بيضاء)
-    ctx.fillStyle = "#FFFFFF";
-    ctx.beginPath(); ctx.ellipse(0, 0, 25, 18, 0, 0, Math.PI*2); ctx.fill();
-    // الرأس والأذنين الداكنة
-    ctx.beginPath(); ctx.arc(20, -10, 12, 0, 7); ctx.fill();
-    ctx.fillStyle = "#4b3621"; // لون الأذن بني داكن (هملايا)
-    ctx.beginPath(); ctx.moveTo(15, -18); ctx.lineTo(18, -30); ctx.lineTo(22, -18); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(25, -18); ctx.lineTo(28, -30); ctx.lineTo(31, -18); ctx.fill();
-    ctx.restore();
+function updateHUD() {
+    document.getElementById('gld-txt').innerText = gold;
+    document.getElementById('lvl-txt').innerText = stage;
+    document.getElementById('rank-txt').innerText = rank;
 }
 
-function drawHut(x, y) {
-    ctx.fillStyle = "#8b4513"; // جدران الكوخ
-    ctx.fillRect(x, y - 60, 100, 80);
-    ctx.fillStyle = "#ff4500"; // السقف
-    ctx.beginPath(); ctx.moveTo(x - 20, y - 60); ctx.lineTo(x + 50, y - 110); ctx.lineTo(x + 120, y - 60); ctx.fill();
-    ctx.fillStyle = "#fff"; ctx.font = "20px Arial"; ctx.fillText("FINISH", x + 20, y - 30);
-}
+// التحكم
+function jump() { if(active) { player.dy = player.jump; playJumpSound(); } }
+window.onmousedown = jump; window.ontouchstart = jump;
 
 function loop() {
     if(!active) return;
-    ctx.fillStyle = "#050510"; ctx.fillRect(0, 0, cvs.width, cvs.height);
+    frame++;
+    ctx.fillStyle = "#020205"; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // الفيزياء
-    p.v += p.g; p.y += p.v;
-    p.speedX = Math.max(2, p.speedX - 0.02); // تباطؤ طبيعي
-    distance += p.speedX;
-    
-    // ملاحقة الذئب (خلف القطة دائماً بمسافة)
-    wolf.y += (p.y - wolf.y) * 0.05;
-    wolf.x = p.x - 150 + (Math.sin(frame*0.05) * 20);
+    player.dy += player.gravity; player.y += player.dy;
 
-    // شريط التقدم
-    let progress = (distance / maxDist) * 100;
-    document.getElementById('progress-bar').style.width = Math.min(100, progress) + "%";
+    // رسم اللاعب حسب النوع
+    ctx.font = "50px Arial";
+    let catImg = player.type == 0 ? "🐈" : (player.type == 1 ? "🐈‍⬛" : "🦁");
+    ctx.fillText(catImg, player.x, player.y);
 
-    // رسم القطة والذئب
-    drawCat(p.x, p.y);
-    ctx.font = "60px Arial"; ctx.fillText("🐺", wolf.x, wolf.y + 20);
-
-    // العوائق (الدهاليز)
-    if(frame % 100 == 0 && distance < maxDist - 500) {
-        let h = Math.random() * (cvs.height - 300) + 100;
-        obs.push({x: cvs.width, y: 0, h: h});
-        obs.push({x: cvs.width, y: h + 220, h: cvs.height});
+    // توليد الكوينز والذهب
+    if(frame % 60 == 0) {
+        coins.push({x: canvas.width, y: Math.random() * canvas.height, v: 5});
     }
 
-    obs.forEach((o, i) => {
-        o.x -= p.speedX;
-        ctx.fillStyle = "#00d2ff"; ctx.fillRect(o.x, o.y, 60, o.h);
-        if(p.x+20 > o.x && p.x-20 < o.x+60 && (p.y-15 < o.y+o.h && p.y+15 > o.y)) die();
-        if(o.x < -100) obs.splice(i, 1);
+    coins.forEach((c, i) => {
+        c.x -= c.v;
+        ctx.fillStyle = "gold"; ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, 7); ctx.fill();
+        ctx.fillStyle = "white"; ctx.fillText("🟡", c.x-15, c.y+10);
+        
+        // جمع الذهب
+        if(Math.hypot(player.x - c.x, player.y - c.y) < 40) {
+            gold += 10; coins.splice(i, 1); updateHUD();
+            if(rank > 1) rank--; // تحسن الترتيب
+        }
     });
 
-    // نهاية المرحلة (الكوخ)
-    if(distance >= maxDist && !hut.show) { hut.show = true; hut.x = cvs.width; hut.y = p.y; }
-    if(hut.show) {
-        hut.x -= p.speedX;
-        drawHut(hut.x, hut.y);
-        if(p.x > hut.x) { nextStage(); }
+    // شروط الهبوط والتأهل
+    if(frame % 2000 == 0) {
+        if(gold > stage * 100) { stage++; alert("تأهلت للمرحلة التالية!"); }
+        else { alert("لم تجمع ذهب كافٍ.. سقطت لمرحلة أدنى!"); stage = Math.max(1, stage-1); }
+        updateHUD();
     }
 
-    if(p.y > cvs.height || p.y < 0 || p.x < wolf.x + 50) die();
-    frame++;
+    if(player.y > canvas.height || player.y < 0) { active = false; alert("خسرت! سيقل ترتيبك العالمي."); rank += 10; location.reload(); }
+
     requestAnimationFrame(loop);
 }
-
-function nextStage() {
-    active = false; stage++; distance = 0; hut.show = false; obs = [];
-    alert("Great! Stage " + stage + " is starting!");
-    document.getElementById('stg-val').innerText = stage;
-    maxDist += 1000;
-    active = true; loop();
-}
-
-function die() { active = false; alert("The wolf caught you! Try again."); location.reload(); }
 </script>
 </body>
 </html>
