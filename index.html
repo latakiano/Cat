@@ -3,49 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Cat Adventure</title>
+    <title>Himalayan Cat: Wolf Pursuit & Shop</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; touch-action: none; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; touch-action: none; }
         canvas { display: block; }
-        #top-ui { position: absolute; top: 0; width: 100%; height: 50px; display: flex; justify-content: space-around; align-items: center; color: gold; background: rgba(0,0,0,0.7); z-index: 10; border-bottom: 2px solid gold; }
-        #speedo { position: absolute; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; border: 2px solid cyan; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; background: rgba(0,0,0,0.8); z-index: 10; }
-        #overlay { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: gold; }
-        .btn { padding: 15px 40px; font-size: 22px; background: gold; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        #top-ui { 
+            position: absolute; top: 0; width: 100%; height: 60px; 
+            display: flex; justify-content: space-around; align-items: center; 
+            color: gold; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); 
+            z-index: 10; font-weight: bold; font-size: 18px;
+        }
+        #speedo { 
+            position: absolute; bottom: 20px; right: 20px; width: 80px; height: 80px; 
+            border-radius: 50%; border: 3px solid #ff3300; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; color: white; 
+            background: rgba(0,0,0,0.9); z-index: 10; box-shadow: 0 0 20px #ff3300; 
+        }
+        #overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            z-index: 100; color: gold; text-align: center; 
+        }
+        .btn { 
+            padding: 18px 60px; font-size: 26px; background: linear-gradient(#ffd700, #b8860b); 
+            border: none; border-radius: 50px; cursor: pointer; font-weight: bold; 
+            box-shadow: 0 0 20px rgba(255,215,0,0.6); margin: 10px;
+        }
+        #shop-box {
+            background: rgba(255, 215, 0, 0.1); border: 1px solid gold;
+            padding: 15px; border-radius: 15px; margin-top: 20px;
+        }
+        #warning {
+            position: absolute; top: 100px; width: 100%; text-align: center;
+            color: red; font-weight: bold; font-size: 30px; display: none;
+            animation: blink 0.5s infinite; z-index: 5;
+        }
+        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0;} 100% {opacity: 1;} }
     </style>
 </head>
 <body>
 
 <div id="top-ui">
     <div id="city-disp">LONDON</div>
-    <div>GOLD: <span id="gold-disp">0</span></div>
+    <div style="color: #00ffcc;">المرحلة: <span id="stage-num">1</span></div>
+    <div>الذهب: <span id="gold-disp">0</span></div>
 </div>
+
+<div id="warning">⚠️ الذئب خلفك مباشرة! ⚠️</div>
 
 <div id="speedo">
     <b id="km-disp">0</b><small>KM/H</small>
 </div>
 
 <div id="overlay">
-    <h2>أساطير الهيمالايا 2026</h2>
-    <p style="color:#ccc">القطة ذات الأذنين البنيتين</p>
-    <button class="btn" id="startBtn">دخول الكهف</button>
+    <h1 id="main-title" style="font-size: 40px; margin-bottom: 10px; text-shadow: 0 0 20px gold;">أساطير الهيمالايا</h1>
+    <p id="sub-title" style="color:#ccc; font-size: 18px;">اجمع الذهب واهرب من الذئب</p>
+    
+    <div id="shop-box">
+        <p style="margin: 0 0 10px 0; color: cyan;">متجر الهيمالايا 🛡️</p>
+        <button class="btn" id="buyShield" style="font-size: 18px; padding: 10px 30px;">شراء درع (50 ذهب)</button>
+    </div>
+
+    <button class="btn" id="startBtn">ابدأ المطاردة</button>
 </div>
 
 <canvas id="c"></canvas>
 
 <script>
-const cvs = document.getElementById('c'), ctx = cvs.getContext('2d');
-let active = false, stage = 0, dist = 0, gold = 0;
-const STAGES = [{n:"LONDON", c:"red"}, {n:"PARIS", c:"#39FF14"}, {n:"ROME", c:"cyan"}, {n:"LATAKIA", c:"gold"}];
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(freq, duration, type='sawtooth') {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + duration);
+}
 
-let p = { x: 80, y: 0, v: 0, g: 0.6, j: -10 };
-let boss = { x: -300, y: 0 };
+const cvs = document.getElementById('c'), ctx = cvs.getContext('2d');
+let active = false, stage = 0, dist = 0, frame = 0, gold = 0, hasShield = false;
+
+const STAGES = [
+    {n:"LONDON", c:"#ff0055"}, {n:"PARIS", c:"#39FF14"}, {n:"ROME", c:"#00d2ff"}, 
+    {n:"LATAKIA", c:"#ffd700"}, {n:"TOKYO", c:"#ff00ff"}, {n:"CAIRO", c:"#ff8800"}
+];
+
+let p = { x: 130, y: 0, v: 0, g: 0.55, j: -9.5 };
+let wolf = { x: -200, y: 0 };
 let obs = [], portal = null;
 
 function resize() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
 window.onresize = resize; resize();
 
+// شراء الدرع
+document.getElementById('buyShield').onclick = (e) => {
+    e.stopPropagation();
+    if(gold >= 50 && !hasShield) {
+        gold -= 50;
+        hasShield = true;
+        document.getElementById('gold-disp').innerText = gold;
+        playSound(800, 0.2, 'sine');
+        alert("تم تفعيل الدرع الواقي!");
+    } else if (hasShield) {
+        alert("لديك درع بالفعل!");
+    } else {
+        alert("الذهب غير كافٍ! اجمع المزيد من الذهب في المرحلة القادمة.");
+    }
+};
+
 document.getElementById('startBtn').onclick = () => {
-    p.y = cvs.height/2; p.v = 0; boss.x = -300; obs = []; dist = 0; portal = null;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    p.y = cvs.height/2; p.v = 0; wolf.x = -150; obs = []; dist = 0; portal = null;
     document.getElementById('overlay').style.display = 'none';
     active = true;
 };
@@ -53,54 +122,112 @@ document.getElementById('startBtn').onclick = () => {
 window.onmousedown = () => { if(active) p.v = p.j; };
 window.ontouchstart = (e) => { if(active) { p.v = p.j; e.preventDefault(); } };
 
+function drawWolf(x, y) {
+    ctx.save(); ctx.translate(x, y);
+    let jaw = Math.sin(frame * 0.2) * 8;
+    ctx.shadowBlur = 20; ctx.shadowColor = "#4facfe";
+    ctx.fillStyle = "#1a252f";
+    ctx.beginPath();
+    ctx.moveTo(0, 20); ctx.lineTo(90, 0); ctx.lineTo(140, 30 + jaw);
+    ctx.lineTo(90, 65); ctx.lineTo(0, 85); ctx.fill();
+    ctx.fillStyle = "yellow"; ctx.beginPath(); ctx.arc(110, 25, 5, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+}
+
 function drawCat(x, y) {
     ctx.save(); ctx.translate(x, y);
-    ctx.fillStyle = "white"; ctx.beginPath(); ctx.ellipse(25, 20, 22, 16, 0, 0, Math.PI*2); ctx.fill(); // الجسم
-    ctx.beginPath(); ctx.arc(45, 12, 13, 0, Math.PI*2); ctx.fill(); // الرأس
-    ctx.fillStyle = "#4e342e"; // الأذنين البنيتين
-    ctx.beginPath(); ctx.moveTo(35, 5); ctx.lineTo(32, -10); ctx.lineTo(42, 2); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(52, 5); ctx.lineTo(55, -10); ctx.lineTo(48, 2); ctx.fill();
-    ctx.fillStyle = "cyan"; ctx.beginPath(); ctx.arc(50, 10, 3, 0, Math.PI*2); ctx.fill(); // عين
-    ctx.fillStyle = "white"; ctx.fillRect(10, 32, 6, 12); ctx.fillRect(40, 32, 6, 12); // أرجل
+    
+    // رسم الدرع إذا كان مفعلاً
+    if(hasShield) {
+        ctx.beginPath();
+        ctx.arc(25, 15, 50, 0, Math.PI*2);
+        ctx.strokeStyle = "rgba(0, 255, 255, 0.5)";
+        ctx.lineWidth = 5;
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    ctx.shadowBlur = 15; ctx.shadowColor = "white";
+    ctx.fillStyle = "white";
+    ctx.beginPath(); ctx.ellipse(25, 20, 24, 18, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(48, 12, 14, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = "#4e342e"; // أذنين بنيتين
+    ctx.beginPath(); ctx.moveTo(38, 5); ctx.lineTo(35, -12); ctx.lineTo(45, 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(55, 5); ctx.lineTo(58, -12); ctx.lineTo(50, 2); ctx.fill();
     ctx.restore();
 }
 
 function update() {
     if(!active) return;
+    frame++;
     p.v += p.g; p.y += p.v;
-    boss.y += (p.y - boss.y) * 0.05;
-    boss.x = Math.min(p.x - 100, boss.x + (0.8 + stage*0.2));
+
+    wolf.y += (p.y - wolf.y) * 0.07;
+    let difficulty = (1 + (stage * 0.3));
+    wolf.x = Math.min(p.x - 60, wolf.x + difficulty);
+
+    if (p.x - wolf.x < 150) {
+        document.getElementById('warning').style.display = 'block';
+        if (frame % 40 === 0) playSound(150, 0.3);
+    } else {
+        document.getElementById('warning').style.display = 'none';
+    }
+
     dist += 5;
-    document.getElementById('km-disp').innerText = Math.floor(10 + dist/50);
+    document.getElementById('km-disp').innerText = Math.floor(25 + dist/35 + stage*10);
+    document.getElementById('stage-num').innerText = stage + 1;
+
+    if(dist > 2500 && !portal) portal = { x: cvs.width, y: cvs.height/2 - 100 };
     
-    if(dist > 2000 && !portal) portal = { x: cvs.width, y: cvs.height/2 - 100 };
     if(portal) {
-        portal.x -= 7;
-        if(p.x > portal.x + 50) { active = false; stage = (stage+1)%STAGES.length; document.getElementById('overlay').style.display = 'flex'; }
-    } else if(obs.length === 0 || obs[obs.length-1].x < cvs.width - 400) {
-        obs.push({ x: cvs.width, y: Math.random()*(cvs.height-300)+100, h: 250 });
+        portal.x -= 8;
+        if(p.x > portal.x + 50) { 
+            active = false; stage = (stage + 1) % STAGES.length; 
+            document.getElementById('overlay').style.display = 'flex'; 
+        }
+    } else if(obs.length === 0 || obs[obs.length-1].x < cvs.width - 380) {
+        obs.push({ x: cvs.width, y: Math.random()*(cvs.height-380)+100, h: 280 - (stage*5) });
     }
 
     obs.forEach((o, i) => {
-        o.x -= (7 + stage);
-        if(p.x+40 > o.x && p.x < o.x+50 && (p.y < o.y || p.y+35 > o.y+o.h)) { active = false; document.getElementById('overlay').style.display = 'flex'; }
-        if(o.x < -100) obs.splice(i, 1);
+        o.x -= (8 + stage * 1.2);
+        if(p.x+40 > o.x && p.x < o.x+50 && (p.y < o.y || p.y+35 > o.y+o.h)) handleCollision();
+        if(o.x < -100) { obs.splice(i, 1); gold += 10; document.getElementById('gold-disp').innerText = gold; }
     });
 
-    if(p.y > cvs.height || p.y < -50 || p.x < boss.x + 80) { active = false; document.getElementById('overlay').style.display = 'flex'; }
+    if(p.y > cvs.height || p.y < -50 || p.x < wolf.x + 100) handleCollision();
     document.getElementById('city-disp').innerText = STAGES[stage].n;
+}
+
+function handleCollision() {
+    if(hasShield) {
+        hasShield = false;
+        playSound(400, 0.5, 'sine');
+        // تفجير العوائق القريبة لمنح فرصة
+        obs = [];
+        wolf.x -= 100;
+    } else {
+        active = false;
+        document.getElementById('overlay').style.display = 'flex';
+        document.getElementById('main-title').innerText = "أمسك بك الذئب!";
+        document.getElementById('sub-title').innerText = "لقد خسرت، لكن يمكنك شراء درع بالذهب الذي جمعته";
+    }
 }
 
 function draw() {
     ctx.fillStyle = "#050508"; ctx.fillRect(0, 0, cvs.width, cvs.height);
     if(portal) {
-        ctx.fillStyle = STAGES[stage].c; ctx.beginPath(); ctx.arc(portal.x+100, portal.y+100, 100, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(portal.x+100, portal.y+100, 80, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 40; ctx.shadowColor = STAGES[stage].c;
+        ctx.fillStyle = STAGES[stage].c; ctx.beginPath(); ctx.arc(portal.x+100, portal.y+100, 110, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(portal.x+100, portal.y+100, 90, 0, Math.PI*2); ctx.fill();
     }
     obs.forEach(o => {
-        ctx.fillStyle = STAGES[stage].c; ctx.fillRect(o.x, 0, 50, o.y); ctx.fillRect(o.x, o.y+o.h, 50, cvs.height);
+        ctx.shadowBlur = 15; ctx.shadowColor = STAGES[stage].c;
+        ctx.fillStyle = STAGES[stage].c; 
+        ctx.fillRect(o.x, 0, 50, o.y); ctx.fillRect(o.x, o.y+o.h, 50, cvs.height);
     });
-    ctx.fillStyle = STAGES[stage].c; ctx.beginPath(); ctx.moveTo(boss.x, boss.y); ctx.lineTo(boss.x+130, boss.y+20); ctx.lineTo(boss.x+90, boss.y+40); ctx.lineTo(boss.x+130, boss.y+60); ctx.lineTo(boss.x, boss.y+80); ctx.fill();
+    drawWolf(wolf.x, wolf.y);
     drawCat(p.x, p.y);
     update();
     requestAnimationFrame(draw);
