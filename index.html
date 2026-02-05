@@ -1,236 +1,158 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cat Survival: Global Mission</title>
+    <title>Cat Survival: The Global Mission</title>
     <style>
-        :root { --gold: #FFD700; --cyan: #00F2FF; --bg: #050515; --victory: #2ecc71; }
-        body { margin: 0; background: var(--bg); overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; color: white; }
+        :root { --gold: #FFD700; --cyan: #00F2FF; --red: #ff4757; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; }
         
-        #top-header { position: fixed; top: 10px; width: 100%; text-align: center; color: var(--gold); font-weight: bold; font-size: 14px; z-index: 100; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
-        #hud { position: fixed; top: 40px; width: 100%; padding: 0 20px; display: flex; justify-content: space-between; box-sizing: border-box; z-index: 100; pointer-events: none; }
-        .stat { background: rgba(0,0,0,0.8); padding: 8px 15px; border-radius: 20px; border: 1px solid var(--gold); font-size: 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        /* حل مشكلة العرض والتمرير */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .window { background: #0a0a25; padding: 25px; border-radius: 30px; border: 3px solid var(--cyan); width: 90%; max-width: 500px; box-shadow: 0 0 50px rgba(0,242,255,0.2); }
+        
+        #distance-tag { position: fixed; top: 30px; left: -40px; background: var(--gold); color: #000; padding: 10px 50px; transform: rotate(-45deg); font-weight: bold; z-index: 100; font-size: 14px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
 
-        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; backdrop-filter: blur(5px); }
-        .window { background: linear-gradient(145deg, #0a0a25, #16163a); padding: 30px; border-radius: 30px; border: 2px solid var(--cyan); width: 85%; max-width: 400px; text-align: center; box-shadow: 0 0 50px rgba(0,242,255,0.3); }
-        .title { color: var(--gold); font-size: 28px; margin: 0 0 10px 0; text-shadow: 2px 2px 0px #000; }
-        .subtitle { color: #aaa; font-size: 13px; margin-bottom: 20px; line-height: 1.4; }
-        
-        .shop { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .card { background: #1f1f50; padding: 15px; border-radius: 20px; border: 2px solid #333; cursor: pointer; transition: 0.2s; position: relative; }
-        .card.active { border-color: var(--gold); transform: translateY(-5px); box-shadow: 0 5px 15px rgba(255,215,0,0.2); }
-        .price-btn { background: var(--cyan); border: none; padding: 8px; border-radius: 12px; width: 100%; font-weight: bold; margin-top: 8px; cursor: pointer; font-size: 11px; color: #050515; }
-        
-        .start-btn { background: #ffff00; color: black; padding: 18px; border-radius: 50px; border: none; width: 80%; max-width: 300px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 10px 20px rgba(255,255,0,0.3); transition: 0.3s; }
-        .start-btn:active { transform: scale(0.95); }
+        .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin: 20px 0; max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 15px; }
+        .card { background: #16163a; padding: 10px; border-radius: 15px; border: 2px solid #333; text-align: center; font-size: 10px; transition: 0.3s; cursor: pointer; }
+        .card.active { border-color: var(--gold); transform: scale(1.05); }
 
-        #final-msg { display: none; color: var(--victory); font-weight: bold; margin-top: 15px; font-size: 18px; }
+        .leaderboard { margin: 15px 0; background: rgba(0,0,0,0.5); border-radius: 15px; padding: 10px; font-size: 12px; }
+        .leader-item { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding: 5px 0; }
+
+        .donate-section { background: linear-gradient(45deg, #1e3799, #0c2461); padding: 15px; border-radius: 20px; border: 1px solid var(--cyan); margin-top: 15px; text-align: center; }
+        .start-btn { background: var(--gold); color: #000; padding: 15px 60px; border-radius: 50px; border: none; font-size: 22px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 10px 30px rgba(255,215,0,0.4); }
     </style>
 </head>
 <body>
 
-<div id="top-header">Stage <span id="stage-num">1</span>/20: The Journey to Freedom</div>
-
-<div id="hud">
-    <div class="stat">💰 <span id="gold-val">0</span></div>
-    <div class="stat">🏆 Stage: <span id="stage-val">1</span>/20</div>
-</div>
+<div id="distance-tag">DISTANCE: <span id="dist-val">0</span>m</div>
 
 <div id="main-overlay" class="overlay">
     <div class="window">
-        <h1 id="win-title" class="title">ROYAL CAT SHOP</h1>
-        <p id="win-desc" class="subtitle">ساعد القطة على تجاوز 20 مرحلة للوصول للأمان وتحقيق الأرباح</p>
-        
-        <div class="shop">
-            <div class="card active" id="card-0" onclick="selectCat(0)">
-                <div style="font-size:40px">🐱</div>
-                <div style="font-size:12px">Himalayan</div>
-                <button class="price-btn" id="btn-0">Active</button>
-            </div>
-            <div class="card" id="card-1" onclick="buyCat(1, 1000)">
-                <div style="font-size:40px">🐈</div>
-                <div style="font-size:12px">Siamese</div>
-                <button class="price-btn" id="btn-1">1000 💰</button>
-            </div>
-            <div class="card" id="card-2" onclick="buyCat(2, 5000)">
-                <div style="font-size:40px">🦁</div>
-                <div style="font-size:12px">Royal Lion</div>
-                <button class="price-btn" id="btn-2">5000 💰</button>
-            </div>
-            <div class="card" id="card-3" onclick="buyCat(3, 15000)">
-                <div style="font-size:40px">👑</div>
-                <div style="font-size:12px">Legendary</div>
-                <button class="price-btn" id="btn-3">15000 💰</button>
-            </div>
+        <h2 style="color:var(--gold); margin:0;">ROYAL SHOP & CHARITY</h2>
+        <p style="font-size:12px; color:#888;">استعد للمرحلة <span id="stage-val">1</span> - كل دولار ينقذ حياة</p>
+
+        <div class="shop-grid" id="cat-shop"></div>
+
+        <div class="leaderboard">
+            <strong>🏆 الترتيب العالمي:</strong>
+            <div id="leader-list"></div>
         </div>
-        <div id="final-msg">لقد أتممت المهمة الإنسانية! 🎉</div>
+
+        <div class="donate-section">
+            <div style="font-size:14px;">🏥 تبرع لعلاج القطة المريضة ($1)</div>
+            <button onclick="donate()" style="background:var(--red); border:none; color:white; padding:8px 20px; border-radius:10px; margin-top:10px; cursor:pointer; font-weight:bold;">تبرع الآن ❤️</button>
+        </div>
     </div>
-    <button id="main-btn" class="start-btn" onclick="startGame()">START MISSION</button>
+    <button class="start-btn" onclick="startGame()">انطلق للإنقاذ!</button>
 </div>
 
 <canvas id="game"></canvas>
 
 <script>
 const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
-let active = false, stage = 1, gold = 0, distance = 0, targetDist = 5000;
-let frame = 0, obstacles = [], coins = [], caveX = -1000;
-let p = { x: 120, y: 0, v: 0, g: 0.6, j: -10, color: "#FFF", size: 25 };
-let wolf = { x: -200, y: 0 };
-let owned = [true, false, false, false];
+let active = false, stage = 1, distance = 0, frame = 0;
+let obstacles = [], coins = [], p = { x: 120, y: 0, v: 0, g: 0.5, j: -9, color: "#FFF", legPhase: 0 };
+let leaders = [
+    {n: "Leo_UK", s: 15400}, {n: "Sara_SY", s: 12100}, {n: "Dev_Jimmy", s: 9800}
+];
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSfx(f, t, d) {
+    let o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+d);
+    o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+d);
+}
 
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.onresize = resize; resize();
 
-function buyCat(id, price) {
-    if(owned[id]) { selectCat(id); return; }
-    if(gold >= price) { 
-        gold -= price; owned[id] = true; 
-        document.getElementById('gold-val').innerText = gold;
-        document.getElementById('btn-'+id).innerText = "Owned";
-        selectCat(id); 
+// بناء المتجر والترتيب
+function updateUI() {
+    const shop = document.getElementById('cat-shop');
+    shop.innerHTML = "";
+    for(let i=1; i<=20; i++) {
+        shop.innerHTML += `<div class="card ${i===stage?'active':''}">🐱<br>قطة ${i}<br><span style="color:var(--gold)">$0.99</span></div>`;
     }
+    const list = document.getElementById('leader-list');
+    list.innerHTML = "";
+    leaders.sort((a,b)=>b.s-a.s).slice(0,3).forEach(l => {
+        list.innerHTML += `<div class="leader-item"><span>${l.n}</span><span>${l.s}m</span></div>`;
+    });
 }
-
-function selectCat(id) {
-    if(!owned[id]) return;
-    for(let i=0; i<4; i++) {
-        const card = document.getElementById('card-'+i);
-        if(card) card.classList.toggle('active', i===id);
-    }
-    const colors = ["#FFF", "#D2B48C", "#FFD700", "#00F2FF"];
-    p.color = colors[id];
-}
+updateUI();
 
 function startGame() {
-    obstacles = []; coins = []; distance = 0; caveX = -1000;
-    p.y = canvas.height / 2; p.v = 0;
-    // ضبط المسافة لكل مرحلة (تزيد مع التقدم)
-    targetDist = 3000 + (stage * 1500);
-    // ضبط الصعوبة
-    p.g = 0.5 + (stage * 0.02); 
-    
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    obstacles = []; coins = []; distance = 0; p.y = canvas.height/2;
     document.getElementById('main-overlay').style.display = 'none';
-    document.getElementById('stage-num').innerText = stage;
-    active = true;
-    animate();
+    active = true; animate();
 }
 
-window.onmousedown = () => { if(active) p.v = p.j; };
-window.ontouchstart = (e) => { if(active) p.v = p.j; e.preventDefault(); };
+window.onmousedown = () => { if(active) { p.v = p.j; playSfx(300, 'sine', 0.2); } };
 
 function drawCat(x, y) {
+    p.legPhase += 0.2;
     ctx.save(); ctx.translate(x, y);
-    ctx.fillStyle = p.color; ctx.beginPath(); ctx.ellipse(0, 0, 25, 18, 0, 0, 7); ctx.fill();
-    ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(18, -8, 12, 0, 7); ctx.fill();
-    ctx.fillStyle = p.color; ctx.beginPath(); ctx.moveTo(12, -18); ctx.lineTo(18, -25); ctx.lineTo(24, -18); ctx.fill();
-    ctx.fillStyle = "#00F2FF"; ctx.beginPath(); ctx.arc(22, -10, 2.5, 0, 7); ctx.fill();
+    // أرجل تتحرك
+    ctx.strokeStyle = p.color; ctx.lineWidth = 3;
+    for(let i=0; i<4; i++) {
+        let off = i * Math.PI/2;
+        let ly = 15 + Math.sin(p.legPhase + off) * 8;
+        ctx.beginPath(); ctx.moveTo(-15 + i*8, 5); ctx.lineTo(-15 + i*8, ly); ctx.stroke();
+    }
+    // جسم ورأس
+    ctx.fillStyle = p.color; ctx.beginPath(); ctx.ellipse(0, 0, 25, 15, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(20, -10, 12, 0, 7); ctx.fill();
+    ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(25, -12, 2, 0, 7); ctx.fill();
     ctx.restore();
 }
 
-function drawWolf(x, y) {
-    ctx.save(); ctx.translate(x, y);
-    ctx.fillStyle = "#2c3e50"; ctx.beginPath(); ctx.ellipse(0, 0, 40, 22, 0, 0, 7); ctx.fill();
-    ctx.fillStyle = "#1a1a1a"; ctx.beginPath(); ctx.arc(30, -12, 18, 0, 7); ctx.fill();
-    ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(38, -15, 4, 0, 7); ctx.fill();
+function drawMonster(o) {
+    ctx.save(); ctx.translate(o.x, o.y);
+    // أجنحة تتحرك
+    let wing = Math.sin(frame * 0.2) * 20;
+    ctx.fillStyle = "#3d3d3d";
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-30, wing); ctx.lineTo(-10, 0); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(30, wing); ctx.lineTo(10, 0); ctx.fill();
+    // جسم مرعب
+    ctx.fillStyle = "#1a1a1a"; ctx.beginPath(); ctx.arc(0, 0, 20, 0, 7); ctx.fill();
+    ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(-8, -5, 3, 0, 7); ctx.arc(8, -5, 3, 0, 7); ctx.fill();
     ctx.restore();
-}
-
-function drawCoin(x, y) {
-    ctx.save(); ctx.translate(x, y);
-    ctx.fillStyle = "#FFD700"; ctx.beginPath(); ctx.arc(0, 0, 12, 0, 7); ctx.fill();
-    ctx.strokeStyle = "#B8860B"; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = "black"; ctx.font = "bold 10px Arial"; ctx.fillText("$", -3, 4);
-    ctx.restore();
-}
-
-function drawCabin(x) {
-    let gy = canvas.height - 20;
-    ctx.fillStyle = "#5D4037"; ctx.fillRect(x, gy-120, 160, 120);
-    ctx.fillStyle = "#8B0000"; ctx.beginPath();
-    ctx.moveTo(x-20, gy-120); ctx.lineTo(x+80, gy-180); ctx.lineTo(x+180, gy-120); ctx.fill();
-    ctx.fillStyle = "#111"; ctx.fillRect(x+60, gy-70, 40, 70);
 }
 
 function animate() {
     if(!active) return;
-    frame++;
-    // لون خلفية يتغير حسب المرحلة
-    ctx.fillStyle = `hsl(${220 + stage*5}, 40%, ${5 + stage}%)`;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    frame++; distance++;
+    document.getElementById('dist-val').innerText = distance;
+    ctx.fillStyle = "#020210"; ctx.fillRect(0,0,canvas.width, canvas.height);
 
     p.v += p.g; p.y += p.v;
-    distance += 10;
-
     drawCat(p.x, p.y);
-    wolf.x = p.x - 200 + Math.sin(frame*0.08)*40;
-    wolf.y += (p.y - wolf.y) * 0.08;
-    drawWolf(wolf.x, wolf.y);
 
-    if(frame % 100 == 0 && distance < targetDist - 1000) {
-        coins.push({x: canvas.width, y: 50 + Math.random()*(canvas.height-100)});
-    }
-    coins.forEach((c, i) => {
-        c.x -= 8; drawCoin(c.x, c.y);
-        if(Math.hypot(p.x-c.x, p.y-c.y) < 35) { coins.splice(i,1); gold += 150; document.getElementById('gold-val').innerText = gold; }
-    });
-
-    // توليد العوائق بصعوبة متزايدة
-    let spawnRate = Math.max(30, 80 - stage*2);
-    if(frame % spawnRate == 0 && distance > 500 && distance < targetDist - 1200) {
-        let gap = Math.max(160, 250 - stage*4); // الفتحة تضيق
-        let h = 50 + Math.random()*(canvas.height - gap - 100);
-        obstacles.push({x: canvas.width, y: 0, h: h, type: 'top'});
-        obstacles.push({x: canvas.width, y: h + gap, h: canvas.height, type: 'bottom'});
-    }
-
+    if(frame % 80 == 0) obstacles.push({x: canvas.width, y: Math.random()*canvas.height});
+    
     obstacles.forEach((o, i) => {
-        o.x -= (8 + stage*0.4); // السرعة تزيد
-        ctx.fillStyle = `hsl(${(stage*20)%360}, 60%, 40%)`;
-        ctx.shadowBlur = 10; ctx.shadowColor = "black";
-        ctx.fillRect(o.x, o.y, 50, o.h);
-        ctx.shadowBlur = 0;
-        
-        if(p.x+20 > o.x && p.x-20 < o.x+50 && p.y+15 > o.y && p.y-15 < o.y+o.h) endGame(false);
-        if(o.x < -100) obstacles.splice(i, 1);
+        o.x -= (7 + stage);
+        drawMonster(o);
+        if(Math.hypot(p.x-o.x, p.y-o.y) < 35) endGame();
     });
 
-    if(distance >= targetDist) {
-        if(caveX === -1000) caveX = canvas.width;
-        caveX -= 8; drawCabin(caveX);
-        if(p.x > caveX + 60 && p.y > canvas.height-150) endGame(true);
-    }
-
-    if(p.y > canvas.height || p.y < 0) endGame(false);
+    if(p.y > canvas.height || p.y < 0) endGame();
     requestAnimationFrame(animate);
 }
 
-function endGame(win) {
-    active = false;
-    const ov = document.getElementById('main-overlay');
-    const title = document.getElementById('win-title');
-    const desc = document.getElementById('win-desc');
-    
-    if(win) {
-        if(stage < 20) {
-            title.innerText = "STAGE COMPLETED! 🏆";
-            desc.innerText = `رائع! تجاوزت المرحلة ${stage}. استعد للمرحلة القادمة فهي أصعب.`;
-            stage++;
-        } else {
-            title.innerText = "YOU ARE A LEGEND! 👑";
-            desc.innerText = "لقد أنهيت الـ 20 مرحلة! أنت الآن بطل حقيقي.. العالم والساحل السوري فخورون بك.";
-            document.getElementById('final-msg').style.display = 'block';
-            document.getElementById('main-btn').innerText = "REPLAY WORLD TOUR";
-            stage = 1;
-        }
-    } else {
-        title.innerText = "MISSION FAILED 💀";
-        desc.innerText = "الذئب نال منك.. حاول مجدداً من أجل القضية!";
-    }
-    
-    document.getElementById('stage-val').innerText = stage;
-    ov.style.display = 'flex';
+function endGame() {
+    active = false; playSfx(100, 'sawtooth', 0.4);
+    leaders.push({n: "You", s: distance});
+    updateUI();
+    document.getElementById('main-overlay').style.display = 'flex';
 }
+
+function donate() { alert("شكراً لقلبك الطيب! تبرعك سيصل لمن يحتاجه."); }
 </script>
 </body>
 </html>
