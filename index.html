@@ -1,100 +1,141 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Cat 2026</title>
+    <title>Himalayan Legends: Global Edition</title>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; touch-action: none; text-align: center; }
-        #ui { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; color: gold; z-index: 100; }
-        .btn { padding: 20px 60px; font-size: 25px; background: gold; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; color: #000; }
-        #hud { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; color: white; font-weight: bold; z-index: 50; }
+        :root { --gold: #FFD700; --accent: #00F2FF; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; }
+        
+        /* واجهة عالمية احترافية */
+        #ui { 
+            position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); z-index: 1000; color: white;
+        }
+        .title { font-size: 3rem; font-weight: 900; color: var(--gold); text-shadow: 0 0 30px var(--gold); margin: 0; letter-spacing: 2px; }
+        .btn { 
+            margin-top: 40px; padding: 18px 80px; font-size: 24px; background: var(--gold); 
+            border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #000;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.4); transition: 0.3s;
+        }
+        .btn:hover { transform: scale(1.1); box-shadow: 0 0 40px var(--gold); }
+
+        #stats { 
+            position: absolute; top: 0; width: 100%; display: none; justify-content: space-around; 
+            padding: 15px; background: rgba(0,0,0,0.6); border-bottom: 2px solid var(--gold); z-index: 100;
+        }
+        .stat-item { color: white; font-size: 1.2rem; font-weight: bold; border: 1px solid var(--gold); padding: 5px 15px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-<div id="hud">
-    <div id="stg">Stage: 1</div>
-    <div id="gld">Gold: 0</div>
-</div>
-
 <div id="ui">
-    <h1 id="t">HIMALAYAN CAT</h1>
-    <button class="btn" id="b" onclick="start()">START</button>
+    <h1 class="title">HIMALAYAN CAT</h1>
+    <p id="sub-title" style="color: var(--accent); margin-top: 10px; font-weight: bold;">World Pursuit 2026</p>
+    <button class="btn" id="start-btn" onclick="startGame()">START</button>
 </div>
 
-<canvas id="c"></canvas>
+<div id="stats">
+    <div class="stat-item" id="lvl-ui">Stage: 1</div>
+    <div class="stat-item" id="gld-ui">Gold: 0</div>
+</div>
+
+<canvas id="gameCanvas"></canvas>
 
 <script>
-// تحديد اللغة تلقائياً
-var L = navigator.language.includes('ar') ? {s:"ابدأ", d:"خسرت!", t:"مرحلة", g:"ذهب"} : {s:"START", d:"Game Over!", t:"Stage", g:"Gold"};
-document.getElementById('b').innerText = L.s;
+// --- نظام الترجمة العالمي الذكي ---
+const i18n = {
+    'ar': { start: "ابدأ المغامرة", die: "أمسك بك الذئب!", lvl: "المرحلة", gld: "الذهب" },
+    'en': { start: "START ADVENTURE", die: "The Wolf Caught You!", lvl: "Level", gld: "Gold" },
+    'fr': { start: "COMMENCER", die: "Le Loup t'a attrapé!", lvl: "Niveau", gld: "Or" },
+    'pt': { start: "INICIAR JOGO", die: "O Lobo te pegou!", lvl: "Nível", gld: "Ouro" },
+    'es': { start: "EMPEZAR", die: "¡Atrapado!", lvl: "Nivel", gld: "Oro" }
+};
+const userLang = navigator.language.split('-')[0];
+const lang = i18n[userLang] || i18n['en'];
+document.getElementById('start-btn').innerText = lang.start;
 
-var canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
-var active = false, stage = 1, gold = 0, frame = 0;
-var p = { x: 50, y: 200, v: 0, g: 0.5, j: -8 };
-var wolf = { x: -100, y: 200 };
-var obs = [];
+// --- محرك اللعبة المصحح ---
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let active = false, stage = 1, gold = 0, frame = 0;
+
+let cat = { x: 120, y: 0, v: 0, g: 0.5, j: -10, w: 50, h: 40 };
+let wolf = { x: -250, y: 0, w: 120, h: 70 }; // يبدأ بعيداً ليعطيك فرصة
+let obstacles = [];
 
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.onresize = resize; resize();
 
-function start() {
+function startGame() {
     document.getElementById('ui').style.display = 'none';
+    document.getElementById('stats').style.display = 'flex';
+    cat.y = canvas.height / 2;
+    wolf.y = cat.y;
     active = true;
-    run();
+    update();
 }
 
-// التحكم باللمس والماوس
-window.onmousedown = function() { p.v = p.j; };
-window.ontouchstart = function(e) { p.v = p.j; e.preventDefault(); };
+window.onmousedown = () => { if(active) cat.v = cat.j; };
+window.ontouchstart = (e) => { if(active) cat.v = cat.j; e.preventDefault(); };
 
-function run() {
+function update() {
     if(!active) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#050508'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // الجاذبية وحركة القطة
-    p.v += p.g; p.y += p.v;
-    
-    // ملاحقة الذئب
-    wolf.y += (p.y - wolf.y) * 0.05;
-    wolf.x = Math.min(p.x - 40, wolf.x + (0.5 + stage * 0.1));
+    // فيزياء القطة (تطير للأمام)
+    cat.v += cat.g; cat.y += cat.v;
 
-    // رسم القطة (إيموجي 🐈) والذئب (إيموجي 🐺)
-    ctx.font = "40px Arial";
-    ctx.fillText("🐈", p.x, p.y);
-    ctx.font = "60px Arial";
-    ctx.fillText("🐺", wolf.x, wolf.y);
+    // حركة الذئب (ملاحقة ذكية)
+    wolf.y += (cat.y - wolf.y) * 0.05;
+    wolf.x += (0.5 + stage * 0.2); 
+    // ضمان بقاء الذئب خلف القطة دائماً إلا لو تعثرت
+    if (wolf.x > cat.x - 70) wolf.x = cat.x - 70;
 
-    // العوائق
+    // رسم القطة 🐈
+    ctx.font = "45px Arial";
+    ctx.fillText("🐈", cat.x, cat.y + 15);
+
+    // رسم الذئب 🐺
+    ctx.font = "65px Arial";
+    ctx.fillText("🐺", wolf.x, wolf.y + 25);
+
+    // العوائق (أعمدة نيون زرقاء)
     frame++;
-    if(frame % 100 == 0) {
-        var h = Math.random() * (canvas.height - 250) + 50;
-        obs.push({x: canvas.width, y: 0, h: h});
-        obs.push({x: canvas.width, y: h + 200, h: canvas.height});
+    if(frame % 110 === 0) {
+        let gap = 250 - (stage * 5);
+        let h = Math.random() * (canvas.height - gap - 100) + 50;
+        obstacles.push({x: canvas.width, y: 0, w: 60, h: h});
+        obstacles.push({x: canvas.width, y: h + gap, w: 60, h: canvas.height});
     }
 
-    for(var i=0; i<obs.length; i++) {
-        var o = obs[i];
-        o.x -= (4 + stage);
-        ctx.fillStyle = "cyan"; ctx.fillRect(o.x, o.y, 50, o.h);
-        
-        // تصادم
-        if(p.x+10 > o.x && p.x-10 < o.x+50 && p.y+10 > o.y && p.y-10 < o.y+o.h) {
-            active = false; alert(L.d); location.reload();
+    obstacles.forEach((o, i) => {
+        o.x -= (5 + stage);
+        ctx.fillStyle = '#00F2FF'; ctx.shadowBlur = 15; ctx.shadowColor = '#00F2FF';
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+        ctx.shadowBlur = 0;
+
+        // تصادم دقيق جداً
+        if(cat.x + 30 > o.x && cat.x < o.x + o.w && (cat.y - 15 < o.y + o.h && cat.y + 15 > o.y)) die();
+        if(o.x < -100) { 
+            obstacles.splice(i, 1); 
+            if(i % 2 === 0) { gold += 10; document.getElementById('gld-ui').innerText = lang.gld + ": " + gold; }
         }
-    }
+    });
 
-    if(p.y > canvas.height || p.y < 0 || p.x < wolf.x + 80) {
-        active = false; alert(L.d); location.reload();
-    }
+    // شروط الخسارة
+    if(cat.y > canvas.height || cat.y < 0) die();
+    // إذا لمست القطة الذئب
+    if(cat.x < wolf.x + 80) die();
 
-    if(frame % 1000 == 0) {
-        stage++; gold += 50;
-        document.getElementById('stg').innerText = L.t + ": " + stage;
-        document.getElementById('gld').innerText = L.g + ": " + gold;
-    }
-    requestAnimationFrame(run);
+    if(frame % 1500 === 0) { stage++; document.getElementById('lvl-ui').innerText = lang.lvl + ": " + stage; }
+    
+    requestAnimationFrame(update);
+}
+
+function die() {
+    active = false; alert(lang.die); location.reload();
 }
 </script>
 </body>
