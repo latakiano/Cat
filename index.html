@@ -3,64 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cat Survival: The Masterpiece</title>
+    <title>Cat Survival: Global Mission</title>
     <style>
-        :root { --gold: #FFD700; --cyan: #00F2FF; --bg: #050515; }
-        body { margin: 0; background: var(--bg); overflow: hidden; font-family: 'Arial', sans-serif; touch-action: none; color: white; }
+        :root { --gold: #FFD700; --cyan: #00F2FF; --bg: #050515; --victory: #2ecc71; }
+        body { margin: 0; background: var(--bg); overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; color: white; }
         
-        #top-header { position: fixed; top: 10px; width: 100%; text-align: center; color: var(--gold); font-weight: bold; font-size: 14px; z-index: 100; text-transform: uppercase; letter-spacing: 1px; }
+        #top-header { position: fixed; top: 10px; width: 100%; text-align: center; color: var(--gold); font-weight: bold; font-size: 14px; z-index: 100; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
         #hud { position: fixed; top: 40px; width: 100%; padding: 0 20px; display: flex; justify-content: space-between; box-sizing: border-box; z-index: 100; pointer-events: none; }
-        .stat { background: rgba(0,0,0,0.7); padding: 10px 15px; border-radius: 15px; border: 2px solid var(--gold); font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .stat { background: rgba(0,0,0,0.8); padding: 8px 15px; border-radius: 20px; border: 1px solid var(--gold); font-size: 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
 
-        /* الواجهة الملكية التي طلبتها */
-        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); z-index: 1000; }
-        .window { background: #0a0a25; padding: 25px; border-radius: 40px; border: 3px solid var(--cyan); width: 85%; max-width: 380px; text-align: center; box-shadow: 0 0 40px var(--cyan); }
-        .title { color: var(--gold); font-size: 26px; margin: 0 0 5px 0; }
-        .subtitle { color: #888; font-size: 12px; margin-bottom: 20px; }
+        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; backdrop-filter: blur(5px); }
+        .window { background: linear-gradient(145deg, #0a0a25, #16163a); padding: 30px; border-radius: 30px; border: 2px solid var(--cyan); width: 85%; max-width: 400px; text-align: center; box-shadow: 0 0 50px rgba(0,242,255,0.3); }
+        .title { color: var(--gold); font-size: 28px; margin: 0 0 10px 0; text-shadow: 2px 2px 0px #000; }
+        .subtitle { color: #aaa; font-size: 13px; margin-bottom: 20px; line-height: 1.4; }
         
-        .shop { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .card { background: #16163a; padding: 15px; border-radius: 25px; border: 2px solid #333; cursor: pointer; transition: 0.3s; }
-        .card.active { border-color: var(--gold); background: #1f1f50; transform: scale(1.05); }
-        .price-btn { background: var(--cyan); border: none; padding: 8px; border-radius: 15px; width: 100%; font-weight: bold; margin-top: 10px; cursor: pointer; font-size: 12px; }
+        .shop { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { background: #1f1f50; padding: 15px; border-radius: 20px; border: 2px solid #333; cursor: pointer; transition: 0.2s; position: relative; }
+        .card.active { border-color: var(--gold); transform: translateY(-5px); box-shadow: 0 5px 15px rgba(255,215,0,0.2); }
+        .price-btn { background: var(--cyan); border: none; padding: 8px; border-radius: 12px; width: 100%; font-weight: bold; margin-top: 8px; cursor: pointer; font-size: 11px; color: #050515; }
         
-        .start-btn { background: #ffff00; color: black; padding: 20px; border-radius: 50px; border: none; width: 80%; max-width: 300px; font-size: 22px; font-weight: bold; cursor: pointer; margin-top: 25px; box-shadow: 0 5px 20px rgba(255,255,0,0.4); }
+        .start-btn { background: #ffff00; color: black; padding: 18px; border-radius: 50px; border: none; width: 80%; max-width: 300px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 10px 20px rgba(255,255,0,0.3); transition: 0.3s; }
+        .start-btn:active { transform: scale(0.95); }
 
-        canvas { display: block; }
+        #final-msg { display: none; color: var(--victory); font-weight: bold; margin-top: 15px; font-size: 18px; }
     </style>
 </head>
 <body>
 
-<div id="top-header">CAT ADVENTURES TO REACH THE CAVE FOR SURVIVAL</div>
+<div id="top-header">Stage <span id="stage-num">1</span>/20: The Journey to Freedom</div>
 
 <div id="hud">
-    <div class="stat">🟡 الذهب: <span id="gold-val">0</span></div>
-    <div class="stat">🏆 المرحلة: <span id="stage-val">1</span></div>
+    <div class="stat">💰 <span id="gold-val">0</span></div>
+    <div class="stat">🏆 Stage: <span id="stage-val">1</span>/20</div>
 </div>
 
 <div id="main-overlay" class="overlay">
     <div class="window">
-        <h1 class="title">ROYAL CAT SHOP</h1>
-        <p class="subtitle">المتجر الملكي - اختر قطتك وانطلق للنجاة</p>
+        <h1 id="win-title" class="title">ROYAL CAT SHOP</h1>
+        <p id="win-desc" class="subtitle">ساعد القطة على تجاوز 20 مرحلة للوصول للأمان وتحقيق الأرباح</p>
+        
         <div class="shop">
             <div class="card active" id="card-0" onclick="selectCat(0)">
                 <div style="font-size:40px">🐱</div>
-                <div style="font-size:12px">هملايا</div>
-                <button class="price-btn" id="btn-0">مفعل</button>
+                <div style="font-size:12px">Himalayan</div>
+                <button class="price-btn" id="btn-0">Active</button>
             </div>
-            <div class="card" id="card-1" onclick="buyCat(1, 500)">
+            <div class="card" id="card-1" onclick="buyCat(1, 1000)">
                 <div style="font-size:40px">🐈</div>
-                <div style="font-size:12px">سيامي</div>
-                <button class="price-btn" id="btn-1">500 🟡</button>
+                <div style="font-size:12px">Siamese</div>
+                <button class="price-btn" id="btn-1">1000 💰</button>
             </div>
-            <div class="card" id="card-2" onclick="buyCat(2, 1500)">
+            <div class="card" id="card-2" onclick="buyCat(2, 5000)">
                 <div style="font-size:40px">🦁</div>
-                <div style="font-size:12px">الملكي</div>
-                <button class="price-btn" id="btn-2">1500 🟡</button>
+                <div style="font-size:12px">Royal Lion</div>
+                <button class="price-btn" id="btn-2">5000 💰</button>
             </div>
-            <div class="card" style="opacity:0.3; display:flex; align-items:center; justify-content:center;">🔒</div>
+            <div class="card" id="card-3" onclick="buyCat(3, 15000)">
+                <div style="font-size:40px">👑</div>
+                <div style="font-size:12px">Legendary</div>
+                <button class="price-btn" id="btn-3">15000 💰</button>
+            </div>
         </div>
+        <div id="final-msg">لقد أتممت المهمة الإنسانية! 🎉</div>
     </div>
-    <button class="start-btn" onclick="startGame()">START GAME / ابدأ اللعب</button>
+    <button id="main-btn" class="start-btn" onclick="startGame()">START MISSION</button>
 </div>
 
 <canvas id="game"></canvas>
@@ -69,30 +75,45 @@
 const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
 let active = false, stage = 1, gold = 0, distance = 0, targetDist = 5000;
 let frame = 0, obstacles = [], coins = [], caveX = -1000;
-let p = { x: 150, y: 0, v: 0, g: 0.6, j: -12, color: "#FFF" };
+let p = { x: 120, y: 0, v: 0, g: 0.6, j: -10, color: "#FFF", size: 25 };
 let wolf = { x: -200, y: 0 };
-let owned = [true, false, false];
+let owned = [true, false, false, false];
 
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.onresize = resize; resize();
 
 function buyCat(id, price) {
     if(owned[id]) { selectCat(id); return; }
-    if(gold >= price) { gold -= price; owned[id] = true; selectCat(id); document.getElementById('gold-val').innerText = gold; document.getElementById('btn-'+id).innerText = "امتلاك"; }
+    if(gold >= price) { 
+        gold -= price; owned[id] = true; 
+        document.getElementById('gold-val').innerText = gold;
+        document.getElementById('btn-'+id).innerText = "Owned";
+        selectCat(id); 
+    }
 }
 
 function selectCat(id) {
     if(!owned[id]) return;
-    for(let i=0; i<3; i++) document.getElementById('card-'+i)?.classList.toggle('active', i===id);
-    p.color = (id===0)?"#FFF":(id===1)?"#D2B48C":"#FFD700";
+    for(let i=0; i<4; i++) {
+        const card = document.getElementById('card-'+i);
+        if(card) card.classList.toggle('active', i===id);
+    }
+    const colors = ["#FFF", "#D2B48C", "#FFD700", "#00F2FF"];
+    p.color = colors[id];
 }
 
 function startGame() {
     obstacles = []; coins = []; distance = 0; caveX = -1000;
     p.y = canvas.height / 2; p.v = 0;
-    targetDist = 4000 + (stage * 1000);
+    // ضبط المسافة لكل مرحلة (تزيد مع التقدم)
+    targetDist = 3000 + (stage * 1500);
+    // ضبط الصعوبة
+    p.g = 0.5 + (stage * 0.02); 
+    
     document.getElementById('main-overlay').style.display = 'none';
-    active = true; animate();
+    document.getElementById('stage-num').innerText = stage;
+    active = true;
+    animate();
 }
 
 window.onmousedown = () => { if(active) p.v = p.j; };
@@ -100,84 +121,84 @@ window.ontouchstart = (e) => { if(active) p.v = p.j; e.preventDefault(); };
 
 function drawCat(x, y) {
     ctx.save(); ctx.translate(x, y);
-    // الجسم
-    ctx.fillStyle = p.color; ctx.beginPath(); ctx.ellipse(0, 0, 30, 20, 0, 0, 7); ctx.fill();
-    // الرأس والآذان
-    ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(22, -10, 15, 0, 7); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(15, -20); ctx.lineTo(20, -30); ctx.lineTo(25, -20); ctx.fill();
-    // العيون
-    ctx.fillStyle = "#00F2FF"; ctx.beginPath(); ctx.arc(28, -12, 3, 0, 7); ctx.fill();
-    // الذيل
-    ctx.strokeStyle = p.color; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(-25, 0); ctx.quadraticCurveTo(-40, -20, -30, -30); ctx.stroke();
+    ctx.fillStyle = p.color; ctx.beginPath(); ctx.ellipse(0, 0, 25, 18, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(18, -8, 12, 0, 7); ctx.fill();
+    ctx.fillStyle = p.color; ctx.beginPath(); ctx.moveTo(12, -18); ctx.lineTo(18, -25); ctx.lineTo(24, -18); ctx.fill();
+    ctx.fillStyle = "#00F2FF"; ctx.beginPath(); ctx.arc(22, -10, 2.5, 0, 7); ctx.fill();
     ctx.restore();
 }
 
 function drawWolf(x, y) {
     ctx.save(); ctx.translate(x, y);
-    ctx.fillStyle = "#444";
-    ctx.beginPath(); ctx.ellipse(0, 0, 45, 25, 0, 0, 7); ctx.fill(); // جسم الذئب
-    ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(35, -15, 20, 0, 7); ctx.fill(); // الرأس
-    ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(42, -18, 4, 0, 7); ctx.fill(); // عين حمراء مرعبة
+    ctx.fillStyle = "#2c3e50"; ctx.beginPath(); ctx.ellipse(0, 0, 40, 22, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = "#1a1a1a"; ctx.beginPath(); ctx.arc(30, -12, 18, 0, 7); ctx.fill();
+    ctx.fillStyle = "red"; ctx.beginPath(); ctx.arc(38, -15, 4, 0, 7); ctx.fill();
     ctx.restore();
 }
 
 function drawCoin(x, y) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.fillStyle = "#FFD700"; ctx.beginPath(); ctx.arc(0, 0, 15, 0, 7); ctx.fill(); // العملة
+    ctx.save(); ctx.translate(x, y);
+    ctx.fillStyle = "#FFD700"; ctx.beginPath(); ctx.arc(0, 0, 12, 0, 7); ctx.fill();
     ctx.strokeStyle = "#B8860B"; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = "white"; ctx.font = "bold 12px Arial"; ctx.fillText("$", -4, 5); // رمز العملة
+    ctx.fillStyle = "black"; ctx.font = "bold 10px Arial"; ctx.fillText("$", -3, 4);
     ctx.restore();
 }
 
 function drawCabin(x) {
     let gy = canvas.height - 20;
-    ctx.fillStyle = "#5D4037"; ctx.fillRect(x, gy-150, 200, 150); // جدران الكوخ على الأرض
-    ctx.fillStyle = "#8B0000"; ctx.beginPath(); // سقف الكوخ
-    ctx.moveTo(x-20, gy-150); ctx.lineTo(x+100, gy-230); ctx.lineTo(x+220, gy-150); ctx.fill();
-    ctx.fillStyle = "#000"; ctx.fillRect(x+75, gy-80, 50, 80); // الباب
+    ctx.fillStyle = "#5D4037"; ctx.fillRect(x, gy-120, 160, 120);
+    ctx.fillStyle = "#8B0000"; ctx.beginPath();
+    ctx.moveTo(x-20, gy-120); ctx.lineTo(x+80, gy-180); ctx.lineTo(x+180, gy-120); ctx.fill();
+    ctx.fillStyle = "#111"; ctx.fillRect(x+60, gy-70, 40, 70);
 }
 
 function animate() {
     if(!active) return;
     frame++;
-    ctx.fillStyle = "#020210"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // لون خلفية يتغير حسب المرحلة
+    ctx.fillStyle = `hsl(${220 + stage*5}, 40%, ${5 + stage}%)`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     p.v += p.g; p.y += p.v;
     distance += 10;
 
     drawCat(p.x, p.y);
-    wolf.x = p.x - 220 + Math.sin(frame*0.1)*30;
-    wolf.y += (p.y - wolf.y) * 0.1;
+    wolf.x = p.x - 200 + Math.sin(frame*0.08)*40;
+    wolf.y += (p.y - wolf.y) * 0.08;
     drawWolf(wolf.x, wolf.y);
 
-    // ظهور الكوينز (عملات حقيقية)
-    if(frame % 120 == 0 && distance < targetDist - 1500) {
-        coins.push({x: canvas.width, y: 100 + Math.random()*(canvas.height-200)});
+    if(frame % 100 == 0 && distance < targetDist - 1000) {
+        coins.push({x: canvas.width, y: 50 + Math.random()*(canvas.height-100)});
     }
     coins.forEach((c, i) => {
-        c.x -= 10; drawCoin(c.x, c.y);
-        if(Math.hypot(p.x-c.x, p.y-c.y) < 40) { coins.splice(i,1); gold += 100; document.getElementById('gold-val').innerText = gold; }
+        c.x -= 8; drawCoin(c.x, c.y);
+        if(Math.hypot(p.x-c.x, p.y-c.y) < 35) { coins.splice(i,1); gold += 150; document.getElementById('gold-val').innerText = gold; }
     });
 
-    // الحواجز
-    if(frame % 70 == 0 && distance > 1000 && distance < targetDist - 1200) {
-        let h = 100 + Math.random()*(canvas.height-400);
-        obstacles.push({x: canvas.width, y: 0, h: h});
-        obstacles.push({x: canvas.width, y: h+200, h: canvas.height});
+    // توليد العوائق بصعوبة متزايدة
+    let spawnRate = Math.max(30, 80 - stage*2);
+    if(frame % spawnRate == 0 && distance > 500 && distance < targetDist - 1200) {
+        let gap = Math.max(160, 250 - stage*4); // الفتحة تضيق
+        let h = 50 + Math.random()*(canvas.height - gap - 100);
+        obstacles.push({x: canvas.width, y: 0, h: h, type: 'top'});
+        obstacles.push({x: canvas.width, y: h + gap, h: canvas.height, type: 'bottom'});
     }
+
     obstacles.forEach((o, i) => {
-        o.x -= (10 + stage*0.5);
-        ctx.fillStyle = `hsl(${(stage*140)%360}, 70%, 50%)`;
-        ctx.fillRect(o.x, o.y, 60, o.h);
-        if(p.x+25 > o.x && p.x-25 < o.x+60 && p.y+20 > o.y && p.y-20 < o.y+o.h) endGame(false);
+        o.x -= (8 + stage*0.4); // السرعة تزيد
+        ctx.fillStyle = `hsl(${(stage*20)%360}, 60%, 40%)`;
+        ctx.shadowBlur = 10; ctx.shadowColor = "black";
+        ctx.fillRect(o.x, o.y, 50, o.h);
+        ctx.shadowBlur = 0;
+        
+        if(p.x+20 > o.x && p.x-20 < o.x+50 && p.y+15 > o.y && p.y-15 < o.y+o.h) endGame(false);
+        if(o.x < -100) obstacles.splice(i, 1);
     });
 
-    // الكوخ الأرضي
     if(distance >= targetDist) {
         if(caveX === -1000) caveX = canvas.width;
-        caveX -= 10; drawCabin(caveX);
-        if(p.x > caveX + 80 && p.y > canvas.height-200) endGame(true);
+        caveX -= 8; drawCabin(caveX);
+        if(p.x > caveX + 60 && p.y > canvas.height-150) endGame(true);
     }
 
     if(p.y > canvas.height || p.y < 0) endGame(false);
@@ -187,8 +208,26 @@ function animate() {
 function endGame(win) {
     active = false;
     const ov = document.getElementById('main-overlay');
-    ov.querySelector('h1').innerText = win ? "🏆 تم الوصول للنجاة!" : "💀 التهمك الذئب!";
-    if(win) stage++;
+    const title = document.getElementById('win-title');
+    const desc = document.getElementById('win-desc');
+    
+    if(win) {
+        if(stage < 20) {
+            title.innerText = "STAGE COMPLETED! 🏆";
+            desc.innerText = `رائع! تجاوزت المرحلة ${stage}. استعد للمرحلة القادمة فهي أصعب.`;
+            stage++;
+        } else {
+            title.innerText = "YOU ARE A LEGEND! 👑";
+            desc.innerText = "لقد أنهيت الـ 20 مرحلة! أنت الآن بطل حقيقي.. العالم والساحل السوري فخورون بك.";
+            document.getElementById('final-msg').style.display = 'block';
+            document.getElementById('main-btn').innerText = "REPLAY WORLD TOUR";
+            stage = 1;
+        }
+    } else {
+        title.innerText = "MISSION FAILED 💀";
+        desc.innerText = "الذئب نال منك.. حاول مجدداً من أجل القضية!";
+    }
+    
     document.getElementById('stage-val').innerText = stage;
     ov.style.display = 'flex';
 }
