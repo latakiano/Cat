@@ -1,96 +1,100 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>Himalayan Cat Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Himalayan Cat 2026</title>
     <style>
-        body { margin: 0; background: #000; color: #fff; overflow: hidden; font-family: sans-serif; text-align: center; }
-        canvas { display: block; background: #111; border-top: 2px solid gold; }
-        #ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; }
-        .btn { padding: 20px 50px; font-size: 25px; background: gold; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        #info { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; font-size: 20px; font-weight: bold; color: gold; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; touch-action: none; text-align: center; }
+        #ui { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; color: gold; z-index: 100; }
+        .btn { padding: 20px 60px; font-size: 25px; background: gold; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; color: #000; }
+        #hud { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; color: white; font-weight: bold; z-index: 50; }
     </style>
 </head>
 <body>
 
-<div id="info">
-    <div id="l-stg">Stage: 1</div>
-    <div id="l-gld">Gold: 0</div>
+<div id="hud">
+    <div id="stg">Stage: 1</div>
+    <div id="gld">Gold: 0</div>
 </div>
 
 <div id="ui">
-    <h1 id="title">HIMALAYAN CAT</h1>
-    <button class="btn" id="startBtn" onclick="start()">START</button>
+    <h1 id="t">HIMALAYAN CAT</h1>
+    <button class="btn" id="b" onclick="start()">START</button>
 </div>
 
 <canvas id="c"></canvas>
 
 <script>
-// كشف اللغة تلقائياً
-var lang = navigator.language.includes('ar') ? {start:"ابدأ", die:"خسرت!", stg:"مرحلة", gld:"ذهب"} : {start:"START", die:"Game Over!", stg:"Stage", gld:"Gold"};
-document.getElementById('startBtn').innerText = lang.start;
+// تحديد اللغة تلقائياً
+var L = navigator.language.includes('ar') ? {s:"ابدأ", d:"خسرت!", t:"مرحلة", g:"ذهب"} : {s:"START", d:"Game Over!", t:"Stage", g:"Gold"};
+document.getElementById('b').innerText = L.s;
 
-var cvs = document.getElementById('c'), ctx = cvs.getContext('2d');
+var canvas = document.getElementById('c'), ctx = canvas.getContext('2d');
 var active = false, stage = 1, gold = 0, frame = 0;
 var p = { x: 50, y: 200, v: 0, g: 0.5, j: -8 };
 var wolf = { x: -100, y: 200 };
 var obs = [];
 
-function resize() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.onresize = resize; resize();
 
 function start() {
     document.getElementById('ui').style.display = 'none';
     active = true;
-    loop();
+    run();
 }
 
+// التحكم باللمس والماوس
 window.onmousedown = function() { p.v = p.j; };
 window.ontouchstart = function(e) { p.v = p.j; e.preventDefault(); };
 
-function loop() {
+function run() {
     if(!active) return;
-    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // تحريك القطة
+    // الجاذبية وحركة القطة
     p.v += p.g; p.y += p.v;
     
-    // تحريك الذئب
+    // ملاحقة الذئب
     wolf.y += (p.y - wolf.y) * 0.05;
     wolf.x = Math.min(p.x - 40, wolf.x + (0.5 + stage * 0.1));
 
-    // رسم القطة (رأس وجسم)
-    ctx.fillStyle = "white";
-    ctx.beginPath(); ctx.arc(p.x, p.y, 15, 0, 7); ctx.fill(); 
-    ctx.beginPath(); ctx.arc(p.x+10, p.y-10, 8, 0, 7); ctx.fill();
-
-    // رسم الذئب (شكل مفترس)
-    ctx.fillStyle = "red";
-    ctx.beginPath(); ctx.moveTo(wolf.x, wolf.y); ctx.lineTo(wolf.x+80, wolf.y-10); ctx.lineTo(wolf.x+100, wolf.y+20); ctx.lineTo(wolf.x+80, wolf.y+40); ctx.fill();
+    // رسم القطة (إيموجي 🐈) والذئب (إيموجي 🐺)
+    ctx.font = "40px Arial";
+    ctx.fillText("🐈", p.x, p.y);
+    ctx.font = "60px Arial";
+    ctx.fillText("🐺", wolf.x, wolf.y);
 
     // العوائق
     frame++;
     if(frame % 100 == 0) {
-        var h = Math.random() * (cvs.height - 250) + 50;
-        obs.push({x: cvs.width, y: 0, w: 50, h: h});
-        obs.push({x: cvs.width, y: h + 200, w: 50, h: cvs.height});
+        var h = Math.random() * (canvas.height - 250) + 50;
+        obs.push({x: canvas.width, y: 0, h: h});
+        obs.push({x: canvas.width, y: h + 200, h: canvas.height});
     }
 
     for(var i=0; i<obs.length; i++) {
         var o = obs[i];
         o.x -= (4 + stage);
-        ctx.fillStyle = "cyan"; ctx.fillRect(o.x, o.y, o.w, o.h);
-        if(p.x+10 > o.x && p.x-10 < o.x+o.w && p.y+10 > o.y && p.y-10 < o.y+o.h) { active=false; alert(lang.die); location.reload(); }
+        ctx.fillStyle = "cyan"; ctx.fillRect(o.x, o.y, 50, o.h);
+        
+        // تصادم
+        if(p.x+10 > o.x && p.x-10 < o.x+50 && p.y+10 > o.y && p.y-10 < o.y+o.h) {
+            active = false; alert(L.d); location.reload();
+        }
     }
 
-    if(p.y > cvs.height || p.y < 0 || p.x < wolf.x + 80) { active=false; alert(lang.die); location.reload(); }
+    if(p.y > canvas.height || p.y < 0 || p.x < wolf.x + 80) {
+        active = false; alert(L.d); location.reload();
+    }
 
     if(frame % 1000 == 0) {
         stage++; gold += 50;
-        document.getElementById('l-stg').innerText = lang.stg + ": " + stage;
-        document.getElementById('l-gld').innerText = lang.gld + ": " + gold;
+        document.getElementById('stg').innerText = L.t + ": " + stage;
+        document.getElementById('gld').innerText = L.g + ": " + gold;
     }
-    requestAnimationFrame(loop);
+    requestAnimationFrame(run);
 }
 </script>
 </body>
