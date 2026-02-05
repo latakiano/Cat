@@ -3,134 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Empire 2026</title>
+    <title>Himalayan Cat: Mario Soul Edition</title>
     <style>
-        :root { --gold: #FFD700; --neon: #00F2FF; --bg: #020205; }
-        body { margin: 0; background: var(--bg); overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; }
+        :root { --gold: #FFD700; --neon: #00F2FF; --danger: #FF3D00; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; }
         
-        /* واجهة الإبداع (HUD) */
-        #hud { position: fixed; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-around; z-index: 100; background: rgba(0,0,0,0.5); border-bottom: 2px solid var(--gold); }
-        .stat { background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 10px; font-weight: bold; border: 1px solid var(--gold); }
+        /* واجهة التحميل (Download Style Distance) */
+        #distance-ui {
+            position: fixed; top: 20px; right: 20px; width: 200px; 
+            background: rgba(0,0,0,0.8); padding: 10px; border-radius: 10px; border: 1px solid var(--neon);
+        }
+        #dl-bar { width: 100%; height: 6px; background: #333; margin-top: 5px; border-radius: 5px; overflow: hidden; }
+        #dl-fill { width: 0%; height: 100%; background: var(--neon); box-shadow: 0 0 10px var(--neon); }
 
-        /* شاشات المتجر والقائمة */
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
-        .panel { background: #1a1a2e; padding: 30px; border-radius: 20px; border: 3px solid var(--gold); text-align: center; width: 80%; max-width: 400px; }
-        .btn { padding: 12px 30px; margin: 10px; background: var(--gold); border: none; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 18px; color: #000; }
+        /* HUD */
+        #hud { position: fixed; top: 20px; left: 20px; display: flex; gap: 15px; z-index: 100; }
+        .stat-card { background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 15px; border-bottom: 3px solid var(--gold); font-weight: bold; }
+
+        /* المتاجر والقوائم */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .window { background: #1a1a2e; width: 90%; max-width: 500px; border-radius: 25px; border: 4px solid var(--gold); padding: 30px; text-align: center; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .shop-item { background: #252545; padding: 15px; border-radius: 15px; border: 1px solid #444; }
+        .buy-btn { background: var(--gold); border: none; padding: 8px 15px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; }
         
-        /* المتجر */
-        #shop-panel { display: none; }
-        .item { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; }
+        /* الأزرار العائمة */
+        #shop-trigger { position: fixed; bottom: 20px; left: 20px; background: var(--gold); color: #000; padding: 15px; border-radius: 50%; font-weight: bold; cursor: pointer; border: 4px solid #fff; }
     </style>
 </head>
 <body>
 
-<div id="hud">
-    <div class="stat">المرحلة: <span id="lvl-txt">1</span></div>
-    <div class="stat">الذهب: <span id="gld-txt">0</span></div>
-    <div class="stat">الترتيب: #<span id="rank-txt">450</span></div>
+<div id="distance-ui">
+    <div style="font-size: 12px; display: flex; justify-content: space-between;">
+        <span>Progressing...</span><span id="dist-percent">0%</span>
+    </div>
+    <div id="dl-bar"><div id="dl-fill"></div></div>
 </div>
+
+<div id="hud">
+    <div class="stat-card">🟡 <span id="gld-val">0</span></div>
+    <div class="stat-card">🏆 STAGE: <span id="lvl-val">1</span></div>
+</div>
+
+<div id="shop-trigger" onclick="showShop()">SHOP</div>
 
 <div id="start-screen" class="overlay">
-    <div class="panel">
-        <h1 style="color: var(--gold)">واجهة الإبداع</h1>
-        <button class="btn" onclick="init()">ابدأ اللعب</button>
-        <button class="btn" style="background: #00F2FF" onclick="showShop()">المتجر</button>
+    <div class="window">
+        <h1 style="font-size: 2.5rem; color: var(--gold);">إبداع الهملايا</h1>
+        <p>ساعد القطة في الهروب من الذئب وجمع الكوينز!</p>
+        <button class="buy-btn" style="font-size: 24px; padding: 15px;" onclick="startGame()">ابدأ المغامرة</button>
     </div>
 </div>
 
-<div id="shop-panel" class="overlay">
-    <div class="panel">
-        <h2>متجر القطط الملكي</h2>
-        <div class="item"><span>قطة هملايا سريعة</span><button onclick="buy(1, 100)">100 🟡</button></div>
-        <div class="item"><span>قطة ملكية صلبة</span><button onclick="buy(2, 500)">500 🟡</button></div>
-        <button class="btn" onclick="hideShop()">إغلاق</button>
+<div id="shop-screen" class="overlay" style="display:none">
+    <div class="window">
+        <h2>المتجر الملكي 🛒</h2>
+        <div class="grid">
+            <div class="shop-item"><div>🐈‍⬛ القطة السوداء</div><button class="buy-btn" onclick="buy(1, 100)">100 🟡</button></div>
+            <div class="shop-item"><div>🦁 الأسد الملك</div><button class="buy-btn" onclick="buy(2, 500)">500 🟡</button></div>
+            <div class="shop-item"><div>⚡ سرعة فائقة</div><button class="buy-btn" onclick="buyEffect('speed', 200)">200 🟡</button></div>
+            <div class="shop-item"><div>🛡️ درع حماية</div><button class="buy-btn" onclick="buyEffect('shield', 300)">300 🟡</button></div>
+        </div>
+        <button class="buy-btn" style="background: #666; color: #fff; margin-top: 20px;" onclick="hideShop()">إغلاق</button>
     </div>
 </div>
 
-<canvas id="game"></canvas>
+<canvas id="gameCanvas"></canvas>
 
 <script>
-const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
-let active = false, stage = 1, gold = 0, rank = 450, frame = 0;
-let player = { x: 100, y: 0, dy: 0, gravity: 0.5, jump: -9, speed: 4, type: 0 };
-let coins = [], obstacles = [];
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let active = false, stage = 1, gold = 0, distance = 0, targetDistance = 5000;
+let frame = 0, playerType = 0;
 
-// نظام الصوت (صوت قفز إلكتروني)
+// نظام الصوت المدمج (بدون ملفات خارجية لضمان العمل)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playJumpSound() {
+function playSound(freq, type, duration) {
     const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.type = 'triangle'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    const g = audioCtx.createGain();
+    osc.type = type; osc.connect(g); g.connect(audioCtx.destination);
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.start(); osc.stop(audioCtx.currentTime + duration);
 }
+
+const jumpSound = () => { playSound(200, 'square', 0.2); playSound(400, 'square', 0.3); }; // صوت ماريو
+const coinSound = () => { playSound(800, 'sine', 0.1); setTimeout(()=>playSound(1200, 'sine', 0.2), 50); }; // رنة الكوينز
+
+// الصور
+const catImg = new Image(); catImg.src = 'https://img.icons8.com/emoji/96/cat-face.png';
+const wolfImg = new Image(); wolfImg.src = 'https://img.icons8.com/color/96/wolf.png';
+
+let p = { x: 120, y: 0, v: 0, g: 0.5, j: -10, w: 60, h: 60 };
+let wolf = { x: -200, y: 0 };
+let coins = [], obs = [];
 
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.onresize = resize; resize();
 
-function init() { document.getElementById('start-screen').style.display = 'none'; active = true; player.y = 300; loop(); }
-function showShop() { document.getElementById('shop-panel').style.display = 'flex'; }
-function hideShop() { document.getElementById('shop-panel').style.display = 'none'; }
+function startGame() { document.getElementById('start-screen').style.display = 'none'; active = true; p.y = 300; animate(); }
+function showShop() { document.getElementById('shop-screen').style.display = 'flex'; active = false; }
+function hideShop() { document.getElementById('shop-screen').style.display = 'none'; active = true; animate(); }
 
-function buy(type, price) {
-    if(gold >= price) { gold -= price; player.type = type; alert("تم الشراء!"); updateHUD(); }
-    else { alert("الذهب غير كافٍ! اجمع المزيد من المراحل."); }
+function buy(t, price) { if(gold >= price) { gold -= price; playerType = t; updateHUD(); alert("تم تغيير القطة!"); } else alert("الذهب غير كافٍ!"); }
+
+window.onmousedown = () => { if(active) { p.v = p.j; jumpSound(); } };
+
+function animate() {
+    if(!active) return;
+    frame++;
+    ctx.fillStyle = "#050510"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // فيزياء ومسافة
+    p.v += p.g; p.y += p.v;
+    distance += 5;
+    let prog = (distance / targetDistance) * 100;
+    document.getElementById('dl-fill').style.width = prog + "%";
+    document.getElementById('dist-percent').innerText = Math.floor(prog) + "%";
+
+    // رسم القطة والذئب (وجه للأمام)
+    ctx.drawImage(catImg, p.x, p.y, p.w, p.h);
+    wolf.x = p.x - 180 + Math.sin(frame*0.05)*30;
+    wolf.y += (p.y - wolf.y) * 0.05;
+    ctx.drawImage(wolfImg, wolf.x, wolf.y, 80, 80);
+
+    // الكوينز (🟡)
+    if(frame % 50 == 0) coins.push({x: canvas.width, y: Math.random()*canvas.height, s: 5});
+    coins.forEach((c, i) => {
+        c.x -= c.s;
+        ctx.fillStyle = var(--gold); ctx.font = "25px Arial"; ctx.fillText("🟡", c.x, c.y);
+        if(Math.hypot(p.x - c.x, p.y - c.y) < 40) { coins.splice(i,1); gold += 10; coinSound(); updateHUD(); }
+    });
+
+    // حواجز متلونة حسب المرحلة
+    if(frame % 100 == 0) {
+        let h = Math.random()*(canvas.height-300)+50;
+        obs.push({x: canvas.width, y: 0, h: h, color: `hsl(${stage * 40}, 70%, 50%)`});
+        obs.push({x: canvas.width, y: h+250, h: canvas.height, color: `hsl(${stage * 40}, 70%, 50%)`});
+    }
+
+    obs.forEach((o, i) => {
+        o.x -= (5 + stage);
+        ctx.fillStyle = o.color; ctx.shadowBlur = 15; ctx.shadowColor = o.color;
+        ctx.fillRect(o.x, o.y, 50, o.h); ctx.shadowBlur = 0;
+        if(p.x < o.x + 50 && p.x + 40 > o.x && p.y < o.y + o.h && p.y + 40 > o.y) die();
+    });
+
+    if(distance >= targetDistance) nextLevel();
+    if(p.y > canvas.height || p.y < 0) die();
+
+    requestAnimationFrame(animate);
 }
 
 function updateHUD() {
-    document.getElementById('gld-txt').innerText = gold;
-    document.getElementById('lvl-txt').innerText = stage;
-    document.getElementById('rank-txt').innerText = rank;
+    document.getElementById('gld-val').innerText = gold;
+    document.getElementById('lvl-val').innerText = stage;
 }
 
-// التحكم
-function jump() { if(active) { player.dy = player.jump; playJumpSound(); } }
-window.onmousedown = jump; window.ontouchstart = jump;
-
-function loop() {
-    if(!active) return;
-    frame++;
-    ctx.fillStyle = "#020205"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // الفيزياء
-    player.dy += player.gravity; player.y += player.dy;
-
-    // رسم اللاعب حسب النوع
-    ctx.font = "50px Arial";
-    let catImg = player.type == 0 ? "🐈" : (player.type == 1 ? "🐈‍⬛" : "🦁");
-    ctx.fillText(catImg, player.x, player.y);
-
-    // توليد الكوينز والذهب
-    if(frame % 60 == 0) {
-        coins.push({x: canvas.width, y: Math.random() * canvas.height, v: 5});
-    }
-
-    coins.forEach((c, i) => {
-        c.x -= c.v;
-        ctx.fillStyle = "gold"; ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, 7); ctx.fill();
-        ctx.fillStyle = "white"; ctx.fillText("🟡", c.x-15, c.y+10);
-        
-        // جمع الذهب
-        if(Math.hypot(player.x - c.x, player.y - c.y) < 40) {
-            gold += 10; coins.splice(i, 1); updateHUD();
-            if(rank > 1) rank--; // تحسن الترتيب
-        }
-    });
-
-    // شروط الهبوط والتأهل
-    if(frame % 2000 == 0) {
-        if(gold > stage * 100) { stage++; alert("تأهلت للمرحلة التالية!"); }
-        else { alert("لم تجمع ذهب كافٍ.. سقطت لمرحلة أدنى!"); stage = Math.max(1, stage-1); }
-        updateHUD();
-    }
-
-    if(player.y > canvas.height || player.y < 0) { active = false; alert("خسرت! سيقل ترتيبك العالمي."); rank += 10; location.reload(); }
-
-    requestAnimationFrame(loop);
+function nextLevel() {
+    active = false; stage++; distance = 0; targetDistance += 2000;
+    alert("🏆 مبروك! أنهيت المرحلة. ترتيبك يتحسن!");
+    updateHUD(); active = true; animate();
 }
+
+function die() { alert("أمسك بك الذئب!"); location.reload(); }
 </script>
 </body>
 </html>
