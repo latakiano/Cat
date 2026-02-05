@@ -3,37 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cat Adventures: Beyond Impossible</title>
+    <title>Cat Survival: The Cinematic Edition</title>
     <style>
-        :root { --gold: #FFD700; --cyan: #00F2FF; --bg-dark: #020512; }
-        body { margin: 0; background: var(--bg-dark); overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; }
+        :root { --gold: #FFD700; --cyan: #00F2FF; --bg: #02040a; }
+        body { margin: 0; background: var(--bg); overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; }
         
-        /* تأثير الضباب السحري في الخلفية */
-        #magic-fog { position: fixed; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(0,242,255,0.05) 0%, transparent 70%); z-index: 1; pointer-events: none; }
+        #top-header { position: fixed; top: 10px; width: 100%; text-align: center; color: var(--gold); font-weight: 900; font-size: 13px; z-index: 100; letter-spacing: 2px; text-shadow: 0 0 10px #000; }
+        #hud { position: fixed; top: 35px; width: 100%; padding: 10px; display: flex; justify-content: space-around; z-index: 100; pointer-events: none; }
+        .stat-card { background: rgba(0,0,0,0.8); padding: 8px 20px; border-radius: 30px; border: 2px solid var(--gold); box-shadow: 0 0 15px rgba(255,215,0,0.3); font-weight: bold; }
 
-        #top-header { position: fixed; top: 10px; width: 100%; text-align: center; color: var(--gold); font-weight: 900; font-size: 14px; z-index: 100; letter-spacing: 2px; text-shadow: 0 0 10px #000; }
-
-        #hud { position: fixed; top: 35px; width: 100%; padding: 10px; display: flex; justify-content: space-around; z-index: 100; }
-        .stat-card { background: rgba(0,0,0,0.8); padding: 8px 20px; border-radius: 30px; border: 2px solid var(--gold); font-weight: bold; box-shadow: 0 0 15px rgba(255,215,0,0.3); }
-
-        /* واجهة المتجر الملكي الأسطورية */
-        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; }
-        .window { background: #07071c; padding: 30px; border-radius: 50px; border: 3px solid var(--cyan); width: 85%; max-width: 400px; text-align: center; box-shadow: 0 0 60px rgba(0,242,255,0.4); }
-        
-        .royal-title { color: var(--gold); font-size: 28px; font-weight: bold; margin: 0; text-shadow: 2px 2px #000; }
+        /* الواجهة الملكية المميزة - لا تغيير */
+        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.92); z-index: 1000; }
+        .window { background: #08081a; padding: 30px; border-radius: 50px; border: 3px solid var(--cyan); width: 85%; max-width: 400px; text-align: center; box-shadow: 0 0 60px rgba(0,242,255,0.4); }
+        .royal-title { color: var(--gold); font-size: 28px; font-weight: bold; margin: 0; }
         .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
-        .cat-card { background: #11112b; padding: 15px; border-radius: 30px; border: 2px solid #222; cursor: pointer; transition: 0.3s ease-out; }
-        .cat-card.active { border-color: var(--gold); background: #1a1a45; transform: translateY(-5px); }
-        
-        .buy-btn { background: var(--cyan); border: none; padding: 10px; border-radius: 20px; width: 100%; font-weight: bold; color: #000; cursor: pointer; }
+        .cat-card { background: #11112b; padding: 15px; border-radius: 30px; border: 2px solid #222; cursor: pointer; transition: 0.3s; }
+        .cat-card.active { border-color: var(--gold); background: #1a1a45; transform: scale(1.05); }
+        .buy-btn { background: var(--cyan); border: none; padding: 10px; border-radius: 20px; width: 100%; font-weight: bold; cursor: pointer; }
         .start-btn { background: #ffff00; color: black; padding: 22px; border-radius: 60px; border: none; width: 85%; max-width: 350px; font-size: 24px; font-weight: 900; cursor: pointer; margin-top: 20px; box-shadow: 0 10px 30px rgba(255,255,0,0.5); }
 
-        canvas { display: block; z-index: 5; }
+        canvas { display: block; filter: saturate(1.2); }
     </style>
 </head>
 <body>
 
-<div id="magic-fog"></div>
 <div id="top-header">CAT ADVENTURES TO REACH THE CAVE FOR SURVIVAL</div>
 
 <div id="hud">
@@ -44,7 +37,7 @@
 <div id="main-overlay" class="overlay">
     <div class="window">
         <h1 class="royal-title">ROYAL CAT SHOP</h1>
-        <p style="font-size: 14px; color: #aaa;">المتجر الملكي - اختر قطتك الملكية</p>
+        <p style="color:#888; font-size:14px">اختر قطتك الملكية وانطلق للنجاة</p>
         <div class="shop-grid">
             <div class="cat-card active" id="card-0" onclick="selectCat(0)">
                 <div style="font-size:35px">🐱</div>
@@ -61,9 +54,7 @@
                 <div style="font-size:12px; font-weight:bold;">الملكي</div>
                 <button class="buy-btn" id="btn-2">1500 🟡</button>
             </div>
-            <div class="cat-card" style="opacity:0.4">
-                <div style="font-size:18px; margin-top:15px">🔒 قريباً</div>
-            </div>
+            <div class="cat-card" style="opacity:0.4"><div style="margin-top:20px">🔒</div></div>
         </div>
     </div>
     <button class="start-btn" onclick="startGame()">START GAME / ابدأ اللعب</button>
@@ -74,7 +65,7 @@
 <script>
 const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
 let active = false, stage = 1, gold = 0, distance = 0, targetDist = 5000;
-let frame = 0, obstacles = [], coins = [], caveX = -2000;
+let frame = 0, obstacles = [], stars = [], msh = [], caveX = -2000;
 let p = { x: 150, y: 0, v: 0, g: 0.55, j: -11, legA: 0, color: "#FFF" };
 let wolf = { x: -300, y: 0 };
 let owned = [true, false, false];
@@ -82,17 +73,18 @@ let owned = [true, false, false];
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.onresize = resize; resize();
 
-// صوتيات محسنة
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-let audio;
-function playSfx(f, t, d, v=0.25) {
-    if(!audio) audio = new AudioCtx();
-    const o = audio.createOscillator(), g = audio.createGain();
-    o.type = t; o.connect(g); g.connect(audio.destination);
-    o.frequency.setValueAtTime(f, audio.currentTime);
-    g.gain.setValueAtTime(v, audio.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + d);
-    o.start(); o.stop(audio.currentTime + d);
+// تهيئة النجوم والفطر في الخلفية
+for(let i=0; i<50; i++) stars.push({x: Math.random()*2000, y: Math.random()*1000, r: Math.random()*2});
+for(let i=0; i<6; i++) msh.push({x: i*450, y: canvas.height-20, h: 150+Math.random()*100});
+
+function playSfx(f, t, d) {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = t; o.connect(g); g.connect(ac.destination);
+    o.frequency.setValueAtTime(f, ac.currentTime);
+    g.gain.setValueAtTime(0.2, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + d);
+    o.start(); o.stop(ac.currentTime + d);
 }
 
 function buyCat(id, price) {
@@ -108,99 +100,103 @@ function selectCat(id) {
 
 function startGame() {
     active = false; obstacles = []; distance = 0; caveX = -2000;
-    p.y = canvas.height / 2; p.v = 0;
-    targetDist = 4000 + (stage * 1500);
+    p.y = canvas.height/2; p.v = 0; targetDist = 4000 + (stage*1000);
     document.getElementById('main-overlay').style.display = 'none';
     active = true; animate();
 }
 
-window.onmousedown = () => { if(active) { p.v = p.j; playSfx(440, 'triangle', 0.15); } };
-window.ontouchstart = (e) => { if(active) { p.v = p.j; playSfx(440, 'triangle', 0.15); } e.preventDefault(); };
+window.onmousedown = () => { if(active) p.v = p.j; };
+window.ontouchstart = (e) => { if(active) p.v = p.j; e.preventDefault(); };
 
-function drawBackground() {
-    // رسم غابة الفطر (محاكاة للصورة)
-    for(let i=0; i<5; i++) {
-        let x = (i * 400 - (distance * 0.5) % 2000);
-        // فطر عملاق
-        ctx.fillStyle = "#1a2a4a";
-        ctx.fillRect(x + 100, canvas.height - 300, 30, 300); // الجذع
-        ctx.fillStyle = "#3a4f8a";
-        ctx.beginPath();
-        ctx.arc(x + 115, canvas.height - 300, 100, Math.PI, 0); // القبعة
-        ctx.fill();
-        // بقع مضيئة
-        ctx.fillStyle = "rgba(0, 242, 255, 0.3)";
-        ctx.beginPath(); ctx.arc(x+80, canvas.height-340, 10, 0, 7); ctx.fill();
-    }
+function drawScene() {
+    // رسم النجوم
+    ctx.fillStyle = "white";
+    stars.forEach(s => {
+        s.x -= 0.5; if(s.x < 0) s.x = canvas.width;
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill();
+    });
+
+    // رسم غابة الفطر (Parallax)
+    msh.forEach(m => {
+        m.x -= 2; if(m.x < -200) m.x = canvas.width + 200;
+        // الجذع
+        ctx.fillStyle = "#1a1a2e"; ctx.fillRect(m.x+40, canvas.height-m.h, 20, m.h);
+        // القبعة المتوهجة
+        let grad = ctx.createRadialGradient(m.x+50, canvas.height-m.h, 10, m.x+50, canvas.height-m.h, 80);
+        grad.addColorStop(0, "#00F2FF"); grad.addColorStop(1, "#0a0a2a");
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(m.x+50, canvas.height-m.h, 70, Math.PI, 0); ctx.fill();
+    });
 }
 
 function drawCat(x, y) {
     ctx.save(); ctx.translate(x, y);
     p.legA += 0.3;
-    // القطة بتفاصيل "الهملايا"
+    // تأثير التوهج للقطة
+    ctx.shadowBlur = 15; ctx.shadowColor = p.color;
     ctx.fillStyle = p.color;
-    ctx.beginPath(); ctx.ellipse(0, 0, 35, 25, 0, 0, 7); ctx.fill(); // الجسم
-    ctx.fillStyle = "#333";
-    ctx.beginPath(); ctx.arc(28, -12, 16, 0, 7); ctx.fill(); // الوجه الأسود
-    ctx.fillStyle = var(--cyan);
-    ctx.beginPath(); ctx.arc(34, -15, 4, 0, 7); ctx.fill(); // عيون متوهجة
+    ctx.beginPath(); ctx.ellipse(0, 0, 32, 22, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(26, -10, 15, 0, 7); ctx.fill();
+    ctx.fillStyle = var(--cyan); ctx.beginPath(); ctx.arc(32, -14, 3.5, 0, 7); ctx.fill();
     ctx.restore();
 }
 
 function drawCabin(x) {
-    let gy = canvas.height - 20;
-    ctx.fillStyle = "#4a3b22"; ctx.fillRect(x, gy-180, 240, 180); // كوخ خشبي
-    ctx.fillStyle = "#8b0000"; ctx.beginPath(); // سقف أحمر
-    ctx.moveTo(x-30, gy-180); ctx.lineTo(x+120, gy-280); ctx.lineTo(x+270, gy-180); ctx.fill();
-    ctx.fillStyle = "#000"; ctx.fillRect(x+90, gy-90, 60, 90); // الباب
+    let gy = canvas.height - 10;
+    ctx.fillStyle = "#3e2723"; ctx.fillRect(x, gy-160, 220, 160); // الجدران
+    ctx.fillStyle = "#7f0000"; ctx.beginPath(); // السقف
+    ctx.moveTo(x-20, gy-160); ctx.lineTo(x+110, gy-250); ctx.lineTo(x+240, gy-160); ctx.fill();
+    ctx.fillStyle = "#000"; ctx.fillRect(x+80, gy-80, 50, 80); // الباب
+    // دخان المدخنة
+    ctx.fillStyle = "rgba(255,255,255,0.3)";
+    ctx.beginPath(); ctx.arc(x+180, gy-280-(frame%50), 15, 0, 7); ctx.fill();
 }
 
 function animate() {
     if(!active) return;
     frame++;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#02040a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    drawBackground();
-
-    p.v += p.g; p.y += p.v;
-    distance += 9;
+    drawScene();
+    p.v += p.g; p.y += p.v; distance += 10;
 
     drawCat(p.x, p.y);
-    wolf.x = p.x - 250 + Math.sin(frame*0.06)*40;
+    wolf.x = p.x - 240 + Math.sin(frame*0.06)*40;
     wolf.y += (p.y - wolf.y) * 0.1;
-    ctx.font = "100px Arial"; ctx.fillText("🐺", wolf.x, wolf.y + 35);
+    ctx.font = "90px Arial"; ctx.fillText("🐺", wolf.x, wolf.y + 30);
 
-    // الحواجز (صخور غابة الفطر)
-    if(frame % 70 == 0 && distance > 1000 && distance < targetDist - 1200) {
-        let h = 150 + Math.random()*(canvas.height-450);
-        obstacles.push({x: canvas.width, y: 0, h: h, c: `hsl(${(stage*140)%360}, 70%, 50%)`});
-        obstacles.push({x: canvas.width, y: h+190, h: canvas.height, c: `hsl(${(stage*140)%360}, 70%, 50%)`});
+    // العقبات (بوابات الطاقة السحرية)
+    if(frame % 70 == 0 && distance < targetDist - 1500) {
+        let h = 100 + Math.random()*(canvas.height-400);
+        let col = `hsl(${(stage*130)%360}, 80%, 50%)`;
+        obstacles.push({x: canvas.width, y: 0, h: h, c: col});
+        obstacles.push({x: canvas.width, y: h+200, h: canvas.height, c: col});
     }
     obstacles.forEach((o, i) => {
-        o.x -= (9 + stage*0.5);
-        ctx.fillStyle = o.c; ctx.shadowBlur = 15; ctx.shadowColor = o.c;
+        o.x -= (10 + stage*0.5);
+        ctx.fillStyle = o.c; ctx.shadowBlur = 20; ctx.shadowColor = o.c;
         ctx.fillRect(o.x, o.y, 60, o.h); ctx.shadowBlur = 0;
-        if(p.x+25 > o.x && p.x-25 < o.x+60 && p.y+20 > o.y && p.y-20 < o.y+o.h) endGame(false);
+        if(p.x+25 > o.x && p.x-25 < o.x+60 && p.y+20 > o.y && p.y-20 < o.y+o.h) end(false);
     });
 
-    // الكوخ الأرضي (المفاجأة النهائية)
+    // الكوخ النهائي (النجاة)
     if(distance >= targetDist) {
         if(caveX === -2000) caveX = canvas.width;
-        caveX -= 9;
-        drawCabin(caveX);
-        if(p.x > caveX + 100 && p.y > canvas.height-200) endGame(true);
+        caveX -= 10; drawCabin(caveX);
+        if(p.x > caveX + 90 && p.y > canvas.height-200) end(true);
     }
 
-    if(p.y > canvas.height || p.y < 0) endGame(false);
+    if(p.y > canvas.height || p.y < 0) end(false);
     requestAnimationFrame(animate);
 }
 
-function endGame(win) {
+function end(win) {
     active = false;
     const ov = document.getElementById('main-overlay');
-    ov.querySelector('h1').innerText = win ? "VICTORY: STAGE "+stage : "GAME OVER";
-    if(win) { stage++; playSfx(800, 'sine', 0.5); }
+    ov.querySelector('h1').innerText = win ? "🏆 تم الوصول للكهف بنجاح" : "💀 القطة في خطر!";
+    if(win) { stage++; gold += 500; }
     document.getElementById('stage-val').innerText = stage;
+    document.getElementById('gold-val').innerText = gold;
     ov.style.display = 'flex';
 }
 </script>
