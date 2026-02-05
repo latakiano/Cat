@@ -3,40 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Cat: The Cave Escape</title>
+    <title>Himalayan Legend: Pro Challenge</title>
     <style>
         :root { --gold: #FFD700; --cyan: #00F2FF; --red: #ff3333; }
-        body { margin: 0; background: #010105; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; color: white; }
+        body { margin: 0; background: #010105; overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; }
         
-        #hud { position: fixed; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-around; z-index: 100; background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--gold); }
+        #hud { position: fixed; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-around; z-index: 100; background: rgba(0,0,0,0.85); border-bottom: 2px solid var(--cyan); }
         .stat-card { background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 15px; border: 1px solid var(--gold); font-weight: bold; }
 
-        #dist-mini { position: fixed; top: 75px; right: 20px; font-size: 14px; color: var(--cyan); background: rgba(0,0,0,0.6); padding: 5px 12px; border-radius: 12px; border: 1px solid var(--cyan); z-index: 100; font-weight: bold; }
+        #dist-mini { position: fixed; top: 75px; right: 20px; font-size: 14px; color: var(--gold); background: rgba(0,0,0,0.7); padding: 5px 12px; border-radius: 12px; border: 1px solid var(--gold); z-index: 100; }
 
-        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; text-align: center; }
-        .window { background: #0d0d1f; padding: 30px; border-radius: 25px; border: 3px solid var(--gold); width: 85%; max-width: 400px; box-shadow: 0 0 50px #000; }
+        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); z-index: 1000; text-align: center; }
+        .window { background: #0a0a1a; padding: 30px; border-radius: 30px; border: 3px solid var(--cyan); width: 85%; max-width: 400px; box-shadow: 0 0 50px #000; }
         
-        .main-title { font-size: 22px; color: var(--gold); margin: 0; font-weight: bold; text-transform: uppercase; }
-        .sub-title { font-size: 16px; color: #fff; margin: 5px 0 20px 0; }
-        
-        .btn { padding: 18px; font-size: 19px; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #000; margin-top: 15px; width: 100%; transition: 0.2s; }
-        .btn:active { transform: scale(0.95); }
+        .btn { padding: 18px; font-size: 20px; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #000; margin-top: 15px; width: 100%; }
     </style>
 </head>
 <body>
 
 <div id="hud">
-    <div class="stat-card">الذهب: <span id="gold-val">0</span></div>
-    <div class="stat-card">المرحلة: <span id="stage-val">1</span></div>
+    <div class="stat-card">GOLD: <span id="gold-val">0</span></div>
+    <div class="stat-card">STAGE: <span id="stage-val">1</span></div>
 </div>
 
-<div id="dist-mini">🏁 الهدف: <span id="dist-val">0</span>/100</div>
+<div id="dist-mini">PROGRESS: <span id="dist-val">0</span>%</div>
 
 <div id="main-overlay" class="overlay">
     <div class="window">
-        <div class="main-title" id="m-title-en">CAT ADVENTURE</div>
-        <div class="sub-title" id="m-title-ar">مغامرة القطة للنجاة من الوحوش</div>
-        <p id="m-desc" style="font-size: 14px; color: #ccc;">ساعد القطة للوصول للكهف بسلام</p>
+        <div style="font-size: 24px; color: var(--gold); font-weight: bold;">CAT ADVENTURE</div>
+        <div style="font-size: 16px; margin-bottom: 20px;">مغامرة القطة للنجاة - وضع التحدي</div>
         <button class="btn" id="action-btn" onclick="startGame()">START GAME / ابدأ اللعب</button>
     </div>
 </div>
@@ -45,17 +40,16 @@
 
 <script>
 const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
-let active = false, stage = 1, gold = 0, distance = 0, targetDist = 2000;
-let frame = 0, obs = [], coins = [], stars = [], caveX = -1000;
-let p = { x: 130, y: 0, v: 0, g: 0.45, j: -9, legA: 0 };
+let active = false, stage = 1, gold = 0, distance = 0, targetDist = 4000;
+let frame = 0, obs = [], coins = [], boxes = [], caveX = -2000;
+let p = { x: 150, y: 0, v: 0, g: 0.5, j: -10, legA: 0 };
 let wolf = { x: -200, y: 0 };
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audio;
 
-function playSfx(freq, type, dur, vol=0.2) {
+function playSfx(freq, type, dur, vol=0.25) {
     if(!audio) audio = new AudioCtx();
-    if(audio.state === 'suspended') audio.resume();
     const o = audio.createOscillator(), g = audio.createGain();
     o.type = type; o.connect(g); g.connect(audio.destination);
     o.frequency.setValueAtTime(freq, audio.currentTime);
@@ -67,13 +61,10 @@ function playSfx(freq, type, dur, vol=0.2) {
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.onresize = resize; resize();
 
-for(let i=0; i<60; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2});
-
 function startGame() {
-    active = false;
-    obs = []; coins = []; distance = 0; caveX = -1000; frame = 0;
+    active = false; obs = []; coins = []; boxes = []; distance = 0; caveX = -2000;
     p.y = canvas.height / 2; p.v = 0;
-    targetDist = 1500 + (stage * 1000); // المسافة تزيد مع كل مرحلة
+    targetDist = 3000 + (stage * 1500); 
     document.getElementById('main-overlay').style.display = 'none';
     active = true;
     animate();
@@ -84,105 +75,95 @@ window.ontouchstart = (e) => { if(active) { p.v = p.j; playSfx(400, 'square', 0.
 
 function drawCat(x, y) {
     ctx.save(); ctx.translate(x, y);
-    p.legA += 0.2;
+    p.legA += 0.3;
     // الأرجل
     ctx.strokeStyle = "#3E2723"; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(-10, 10); ctx.lineTo(-10 + Math.sin(p.legA)*8, 22); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(10, 10); ctx.lineTo(10 + Math.cos(p.legA)*8, 22); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-12, 12); ctx.lineTo(-12 + Math.sin(p.legA)*10, 25); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(12, 12); ctx.lineTo(12 + Math.cos(p.legA)*10, 25); ctx.stroke();
     // الجسم
     let g = ctx.createRadialGradient(0,0,5,0,0,25);
     g.addColorStop(0, "#fff"); g.addColorStop(1, "#EEDCBB");
-    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0, 30, 20, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0, 32, 22, 0, 0, 7); ctx.fill();
     // الذيل
-    ctx.fillStyle = "#D2B48C"; ctx.beginPath(); ctx.ellipse(-32, 0, 15, 8, Math.PI/4, 0, 7); ctx.fill();
+    ctx.fillStyle = "#D2B48C"; ctx.beginPath(); ctx.ellipse(-35, 0, 18, 9, Math.PI/4, 0, 7); ctx.fill();
     // الرأس والعيون
-    ctx.fillStyle = "#3E2723"; ctx.beginPath(); ctx.arc(22, -8, 12, 0, 7); ctx.fill();
-    ctx.fillStyle = "#00F2FF"; ctx.shadowBlur = 10; ctx.shadowColor = "#00F2FF";
-    ctx.beginPath(); ctx.arc(26, -10, 3, 0, 7); ctx.fill();
-    ctx.restore();
-}
-
-function drawWolf(x, y) {
-    ctx.save(); ctx.translate(x, y);
-    let wAnim = Math.sin(Date.now()*0.005)*5;
-    ctx.fillStyle = "#333"; ctx.beginPath(); ctx.ellipse(0, wAnim, 45, 22, 0, 0, 7); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(35, -5+wAnim); ctx.lineTo(65, 5+wAnim); ctx.lineTo(35, 18+wAnim); ctx.fill();
-    ctx.fillStyle = "red"; ctx.shadowBlur = 15; ctx.shadowColor = "red";
-    ctx.beginPath(); ctx.arc(45, 2+wAnim, 4, 0, 7); ctx.fill();
+    ctx.fillStyle = "#3E2723"; ctx.beginPath(); ctx.arc(24, -10, 14, 0, 7); ctx.fill();
+    ctx.fillStyle = var(--cyan); ctx.shadowBlur = 15; ctx.shadowColor = var(--cyan);
+    ctx.beginPath(); ctx.arc(28, -12, 3.5, 0, 7); ctx.fill();
     ctx.restore();
 }
 
 function animate() {
     if(!active) return;
     frame++;
-    ctx.fillStyle = "#020205"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    stars.forEach(s => { s.x -= 0.5; if(s.x < 0) s.x = canvas.width; ctx.fillStyle="#fff"; ctx.fillRect(s.x, s.y, s.r, s.r); });
+    ctx.fillStyle = "#010108"; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     p.v += p.g; p.y += p.v;
-    distance += 6;
-    let progress = Math.min(100, Math.floor((distance / targetDist) * 100));
-    document.getElementById('dist-val').innerText = progress;
+    distance += 7; // زيادة سرعة اللعبة
+    document.getElementById('dist-val').innerText = Math.min(100, Math.floor((distance/targetDist)*100));
 
     drawCat(p.x, p.y);
-    wolf.x = p.x - 175 + Math.sin(frame*0.04)*20;
-    wolf.y += (p.y - wolf.y) * 0.06;
-    drawWolf(wolf.x, wolf.y);
+    wolf.x = p.x - 190 + Math.sin(frame*0.05)*25;
+    wolf.y += (p.y - wolf.y) * 0.07;
+    // رسم وحش 3D متطور
+    ctx.font = "80px Arial"; ctx.shadowBlur=20; ctx.shadowColor="red";
+    ctx.fillText("🐺", wolf.x, wolf.y + 25); ctx.shadowBlur=0;
 
-    // الكوينز
-    if(frame % 70 == 0) coins.push({x: canvas.width, y: Math.random()*canvas.height});
-    coins.forEach((c, i) => {
-        c.x -= 6; ctx.fillStyle = "gold"; ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, 7); ctx.fill();
-        if(Math.hypot(p.x-c.x, p.y-c.y) < 40) { coins.splice(i,1); gold+=50; playSfx(1000, 'sine', 0.1); document.getElementById('gold-val').innerText = gold; }
+    // صناديق الذهب الطائرة (مربعات الذهب)
+    if(frame % 150 == 0 && distance > 1000 && distance < targetDist - 1200) {
+        boxes.push({x: canvas.width, y: Math.random()*(canvas.height-100), w: 80, h: 40});
+    }
+    boxes.forEach((b, i) => {
+        b.x -= 7;
+        ctx.fillStyle = "rgba(255, 215, 0, 0.2)"; ctx.strokeStyle = "gold"; ctx.lineWidth = 2;
+        ctx.strokeRect(b.x, b.y, b.w, b.h); ctx.fillRect(b.x, b.y, b.w, b.h);
+        ctx.fillStyle = "gold"; ctx.font = "bold 14px Arial"; ctx.fillText("GOLD +100", b.x+5, b.y+25);
+        if(p.x+25 > b.x && p.x-25 < b.x+b.w && p.y+20 > b.y && p.y-20 < b.y+b.h) {
+            boxes.splice(i,1); gold += 100; playSfx(1500, 'sine', 0.2);
+            document.getElementById('gold-val').innerText = gold;
+        }
     });
 
-    // الحواجز (تظهر فقط قبل النهاية بمسافة)
-    if(frame % 90 == 0 && distance < targetDist - 1000) {
-        let h = Math.random()*(canvas.height-280);
-        let col = `hsl(${(stage*100)%360}, 70%, 50%)`;
+    // الحواجز (تبدأ بعد مسافة استعداد 800)
+    if(frame % 70 == 0 && distance > 800 && distance < targetDist - 1000) {
+        let h = Math.random()*(canvas.height-320);
+        let col = `hsl(${(stage*120)%360}, 80%, 50%)`;
         obs.push({x: canvas.width, y: 0, h: h, c: col});
-        obs.push({x: canvas.width, y: h+230, h: canvas.height, c: col});
+        obs.push({x: canvas.width, y: h+210, h: canvas.height, c: col}); // فتحة أضيق
     }
     obs.forEach((o, i) => {
-        o.x -= (6 + stage*0.3);
-        ctx.fillStyle = o.c; ctx.fillRect(o.x, o.y, 55, o.h);
-        if(p.x+20 > o.x && p.x-20 < o.x+55 && p.y+15 > o.y && p.y-15 < o.y+o.h) end(false);
+        o.x -= (7 + stage*0.5);
+        ctx.fillStyle = o.c; ctx.shadowBlur = 10; ctx.shadowColor = o.c;
+        ctx.fillRect(o.x, o.y, 60, o.h); ctx.shadowBlur = 0;
+        if(p.x+22 > o.x && p.x-22 < o.x+60 && p.y+18 > o.y && p.y-18 < o.y+o.h) endGame(false);
     });
 
-    // الكهف (يظهر في النهاية)
+    // الكهف الثابت في النهاية
     if(distance >= targetDist) {
-        if(caveX === -1000) caveX = canvas.width;
-        caveX -= 6;
-        // رسم الكهف
-        ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(caveX+70, p.y, 80, 0, 7); ctx.fill();
-        ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(caveX+70, p.y, 50, 0, 7); ctx.fill();
-        ctx.fillStyle = "#gold"; ctx.font = "20px Arial"; ctx.fillText("EXIT", caveX+50, p.y-90);
+        if(caveX === -2000) caveX = canvas.width;
+        caveX -= 7;
+        ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(caveX+100, canvas.height/2, 120, 0, 7); ctx.fill();
+        ctx.strokeStyle = var(--gold); ctx.lineWidth = 5; ctx.stroke();
+        ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(caveX+100, canvas.height/2, 80, 0, 7); ctx.fill();
+        ctx.fillStyle = "white"; ctx.font = "bold 20px Arial"; ctx.fillText("THE CAVE", caveX+55, canvas.height/2 - 100);
         
-        if(p.x > caveX + 60) end(true);
+        if(p.x > caveX + 80) endGame(true);
     }
 
-    if(p.y > canvas.height || p.y < 0) end(false);
+    if(p.y > canvas.height || p.y < 0) endGame(false);
     requestAnimationFrame(animate);
 }
 
-function end(win) {
+function endGame(win) {
     active = false;
     const ov = document.getElementById('main-overlay');
-    const tEn = document.getElementById('m-title-en');
-    const tAr = document.getElementById('m-title-ar');
-    const desc = document.getElementById('m-desc');
     const btn = document.getElementById('action-btn');
-
     if(win) {
-        tEn.innerText = "STAGE " + stage + " CLEARED";
-        tAr.innerText = "نجحت بتجاوز المرحلة " + stage;
-        desc.innerText = "القطة وصلت للكهف بسلام، هل أنت مستعد للتالي؟";
-        btn.innerText = "START NEXT STAGE / ابدأ اللعب";
+        ov.querySelector('div').innerText = "STAGE " + stage + " CLEARED";
+        btn.innerText = "START STAGE " + (stage+1) + " / ابدأ اللعب";
         stage++;
     } else {
-        tEn.innerText = "GAME OVER";
-        tAr.innerText = "لقد التهمك الوحش الجائع";
-        desc.innerText = "لا تستسلم، القطة تعتمد عليك!";
+        ov.querySelector('div').innerText = "YOU LOST / حاول مرة أخرى";
         btn.innerText = "TRY AGAIN / اعد المحاولة";
     }
     document.getElementById('stage-val').innerText = stage;
