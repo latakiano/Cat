@@ -1,196 +1,97 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Cat: Elite Edition 2026</title>
+    <title>Himalayan Cat Game</title>
     <style>
-        :root { --gold: #ffd700; --neon-cyan: #00f2ff; --neon-red: #ff0055; }
-        body { margin: 0; overflow: hidden; background: #050508; font-family: 'Segoe UI', Tahoma, sans-serif; color: white; touch-action: none; }
-        
-        /* الواجهة العالمية */
-        #ui-overlay {
-            position: fixed; inset: 0; z-index: 1000;
-            background: radial-gradient(circle at center, #111 0%, #000 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: 1s ease-in-out;
-        }
-        .hero-title {
-            font-size: clamp(40px, 8vw, 70px); font-weight: 900; letter-spacing: 10px;
-            background: linear-gradient(to bottom, #fff, var(--gold), #554400);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5)); margin-bottom: 10px;
-        }
-        .start-btn {
-            padding: 20px 100px; font-size: 28px; background: transparent; 
-            border: 2px solid var(--gold); color: var(--gold); border-radius: 50px;
-            cursor: pointer; transition: 0.4s; font-weight: bold; text-transform: uppercase;
-            box-shadow: inset 0 0 15px rgba(255, 215, 0, 0.2);
-        }
-        .start-btn:hover { background: var(--gold); color: black; box-shadow: 0 0 50px var(--gold); }
-
-        /* شاشة اللعب */
-        #game-stats {
-            position: absolute; top: 20px; width: 90%; display: flex; 
-            justify-content: space-between; left: 5%; z-index: 100; pointer-events: none;
-        }
-        .stat-card {
-            background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);
-            padding: 10px 25px; border-radius: 15px; border: 1px solid rgba(255,215,0,0.3);
-            display: flex; flex-direction: column; align-items: center;
-        }
-        .stat-label { font-size: 12px; color: #aaa; text-transform: uppercase; }
-        .stat-value { font-size: 24px; font-weight: bold; color: var(--gold); }
-        
-        #boss-warning {
-            position: fixed; top: 50%; width: 100%; text-align: center;
-            color: var(--neon-red); font-size: 50px; font-weight: 900;
-            display: none; animation: pulse 0.5s infinite; z-index: 200;
-        }
-        @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.1);} 100% {transform: scale(1);} }
+        body { margin: 0; background: #000; color: #fff; overflow: hidden; font-family: sans-serif; text-align: center; }
+        canvas { display: block; background: #111; border-top: 2px solid gold; }
+        #ui { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; }
+        .btn { padding: 20px 50px; font-size: 25px; background: gold; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        #info { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; font-size: 20px; font-weight: bold; color: gold; }
     </style>
 </head>
 <body>
 
-<div id="ui-overlay">
-    <div class="hero-title">ELITE CAT</div>
-    <p style="color: #666; font-size: 18px; margin-bottom: 40px;">20 STAGES OF ROYAL PURSUIT</p>
-    <button class="start-btn" onclick="startEliteGame()">دخول الكهف</button>
+<div id="info">
+    <div id="l-stg">Stage: 1</div>
+    <div id="l-gld">Gold: 0</div>
 </div>
 
-<div id="game-stats" style="display: none;">
-    <div class="stat-card"><span class="stat-label">المرحلة</span><span id="lvl-txt" class="stat-value">1</span></div>
-    <div class="stat-card"><span class="stat-label">الذهب</span><span id="gold-txt" class="stat-value">0</span></div>
-    <div class="stat-card"><span class="stat-label">المسافة</span><span id="dist-txt" class="stat-value">0</span></div>
+<div id="ui">
+    <h1 id="title">HIMALAYAN CAT</h1>
+    <button class="btn" id="startBtn" onclick="start()">START</button>
 </div>
 
-<div id="boss-warning">⚠️ وحش المرحلة ⚠️</div>
-
-<canvas id="gameCanvas"></canvas>
+<canvas id="c"></canvas>
 
 <script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-let active = false, stage = 1, gold = 0, distance = 0, frame = 0;
+// كشف اللغة تلقائياً
+var lang = navigator.language.includes('ar') ? {start:"ابدأ", die:"خسرت!", stg:"مرحلة", gld:"ذهب"} : {start:"START", die:"Game Over!", stg:"Stage", gld:"Gold"};
+document.getElementById('startBtn').innerText = lang.start;
 
-// إعدادات اللاعب (القطة)
-const p = { x: 150, y: 0, v: 0, g: 0.5, j: -11, w: 60, h: 45 };
-const wolf = { x: -300, y: 0, w: 180, h: 100, speed: 1.5 };
-let obstacles = [], coins = [];
+var cvs = document.getElementById('c'), ctx = cvs.getContext('2d');
+var active = false, stage = 1, gold = 0, frame = 0;
+var p = { x: 50, y: 200, v: 0, g: 0.5, j: -8 };
+var wolf = { x: -100, y: 200 };
+var obs = [];
 
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+function resize() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
 window.onresize = resize; resize();
 
-function startEliteGame() {
-    document.getElementById('ui-overlay').style.opacity = '0';
-    setTimeout(() => {
-        document.getElementById('ui-overlay').style.display = 'none';
-        document.getElementById('game-stats').style.display = 'flex';
-        p.y = canvas.height/2; active = true;
-    }, 1000);
+function start() {
+    document.getElementById('ui').style.display = 'none';
+    active = true;
+    loop();
 }
 
-// التحكم باللمس
-window.addEventListener('touchstart', (e) => { if(active) p.v = p.j; e.preventDefault(); }, {passive: false});
-window.addEventListener('mousedown', () => { if(active) p.v = p.j; });
+window.onmousedown = function() { p.v = p.j; };
+window.ontouchstart = function(e) { p.v = p.j; e.preventDefault(); };
 
-function drawGlowObject(x, y, w, h, color) {
-    ctx.shadowBlur = 20; ctx.shadowColor = color;
-    ctx.fillStyle = color;
-    ctx.fillRect(x, y, w, h);
-    ctx.shadowBlur = 0;
-}
-
-function update() {
+function loop() {
     if(!active) return;
-    frame++;
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+    // تحريك القطة
     p.v += p.g; p.y += p.v;
+    
+    // تحريك الذئب
+    wolf.y += (p.y - wolf.y) * 0.05;
+    wolf.x = Math.min(p.x - 40, wolf.x + (0.5 + stage * 0.1));
 
-    // حركة الذئب الذكية (يلاحق القطة رأسياً ويزداد سرعة أفقياً)
-    wolf.y += (p.y - wolf.y) * 0.08;
-    let stageSpeed = 1 + (stage * 0.3);
-    wolf.x = Math.min(p.x - 90, wolf.x + stageSpeed);
+    // رسم القطة (رأس وجسم)
+    ctx.fillStyle = "white";
+    ctx.beginPath(); ctx.arc(p.x, p.y, 15, 0, 7); ctx.fill(); 
+    ctx.beginPath(); ctx.arc(p.x+10, p.y-10, 8, 0, 7); ctx.fill();
 
-    distance += 1;
-    document.getElementById('dist-txt').innerText = Math.floor(distance);
-    document.getElementById('lvl-txt').innerText = stage;
+    // رسم الذئب (شكل مفترس)
+    ctx.fillStyle = "red";
+    ctx.beginPath(); ctx.moveTo(wolf.x, wolf.y); ctx.lineTo(wolf.x+80, wolf.y-10); ctx.lineTo(wolf.x+100, wolf.y+20); ctx.lineTo(wolf.x+80, wolf.y+40); ctx.fill();
 
-    // توليد المراحل الـ 20
-    if(distance % 3000 === 0) {
-        stage++;
-        if(stage % 5 === 0) triggerBoss();
+    // العوائق
+    frame++;
+    if(frame % 100 == 0) {
+        var h = Math.random() * (cvs.height - 250) + 50;
+        obs.push({x: cvs.width, y: 0, w: 50, h: h});
+        obs.push({x: cvs.width, y: h + 200, w: 50, h: cvs.height});
     }
 
-    // توليد عوائق وكوينز
-    if(frame % 100 === 0) spawnObstacle();
+    for(var i=0; i<obs.length; i++) {
+        var o = obs[i];
+        o.x -= (4 + stage);
+        ctx.fillStyle = "cyan"; ctx.fillRect(o.x, o.y, o.w, o.h);
+        if(p.x+10 > o.x && p.x-10 < o.x+o.w && p.y+10 > o.y && p.y-10 < o.y+o.h) { active=false; alert(lang.die); location.reload(); }
+    }
 
-    // فحص التصادم
-    if(p.y > canvas.height || p.y < 0 || p.x < wolf.x + 130) gameOver();
+    if(p.y > cvs.height || p.y < 0 || p.x < wolf.x + 80) { active=false; alert(lang.die); location.reload(); }
+
+    if(frame % 1000 == 0) {
+        stage++; gold += 50;
+        document.getElementById('l-stg').innerText = lang.stg + ": " + stage;
+        document.getElementById('l-gld').innerText = lang.gld + ": " + gold;
+    }
+    requestAnimationFrame(loop);
 }
-
-function triggerBoss() {
-    const warning = document.getElementById('boss-warning');
-    warning.style.display = 'block';
-    setTimeout(() => { warning.style.display = 'none'; }, 2000);
-    wolf.x -= 200; // إعطاء فرصة للاعب عند ظهور الوحش
-}
-
-function spawnObstacle() {
-    let gap = Math.max(200, 350 - (stage * 5));
-    let yPos = Math.random() * (canvas.height - gap);
-    obstacles.push({ x: canvas.width, y: 0, w: 60, h: yPos, c: "#ff0055" });
-    obstacles.push({ x: canvas.width, y: yPos + gap, w: 60, h: canvas.height, c: "#ff0055" });
-    coins.push({ x: canvas.width + 30, y: yPos + gap/2, r: 15 });
-}
-
-function draw() {
-    ctx.fillStyle = "#050508"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // رسم القطة النيون
-    ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.shadowBlur = 15; ctx.shadowColor = "white";
-    ctx.fillStyle = "white";
-    ctx.beginPath(); ctx.ellipse(25, 20, 24, 18, 0, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = "#4e342e"; ctx.fillRect(40, 5, 8, 8); // أذن بني
-    ctx.restore();
-
-    // رسم الذئب الملكي
-    ctx.shadowBlur = 30; ctx.shadowColor = "cyan";
-    ctx.fillStyle = "#1a1a2e";
-    ctx.fillRect(wolf.x, wolf.y, wolf.w, wolf.h);
-    ctx.fillStyle = "yellow"; ctx.fillRect(wolf.x + wolf.w - 20, wolf.y + 20, 10, 10); // عين
-
-    // رسم العوائق
-    obstacles.forEach((o, i) => {
-        o.x -= (6 + stage);
-        drawGlowObject(o.x, o.y, o.w, o.h, o.c);
-        if(p.x + p.w > o.x && p.x < o.x + o.w && p.y > o.y && p.y < o.y + o.h) gameOver();
-        if(o.x < -100) obstacles.splice(i, 1);
-    });
-
-    // رسم الكوينز
-    coins.forEach((c, i) => {
-        c.x -= (6 + stage);
-        ctx.shadowBlur = 20; ctx.shadowColor = "gold";
-        ctx.fillStyle = "gold";
-        ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI*2); ctx.fill();
-        if(Math.hypot(p.x - c.x, p.y - c.y) < 50) {
-            coins.splice(i, 1); gold += (10 * stage);
-            document.getElementById('gold-txt').innerText = gold;
-        }
-    });
-
-    update();
-    requestAnimationFrame(draw);
-}
-
-function gameOver() {
-    active = false;
-    location.reload(); // إعادة للواجهة العالمية
-}
-
-draw();
 </script>
 </body>
 </html>
