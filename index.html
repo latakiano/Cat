@@ -3,51 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Legend - Survive</title>
+    <title>Himalayan Legend: 3D Monsters & Leaderboard</title>
     <style>
-        :root { --gold: #FFD700; --cyan: #00F2FF; --red: #ff3333; }
-        body { margin: 0; background: #010105; overflow: hidden; font-family: 'Segoe UI', Arial; touch-action: none; color: white; }
+        :root { --gold: #FFD700; --cyan: #00F2FF; --red: #ff3333; --glass: rgba(255, 255, 255, 0.1); }
+        body { margin: 0; background: #010105; overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; }
         
-        #hud { position: fixed; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-around; z-index: 100; background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--gold); }
-        .stat-card { background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 15px; border: 1px solid var(--gold); font-weight: bold; }
+        /* واجهة النتائج والترتيب */
+        .leaderboard { margin-top: 15px; background: var(--glass); padding: 10px; border-radius: 10px; border: 1px solid var(--cyan); font-size: 14px; width: 100%; }
+        .rank-item { display: flex; justify-content: space-between; padding: 3px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .rank-item.me { color: var(--gold); font-weight: bold; background: rgba(255,215,0,0.2); }
 
-        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; text-align: center; }
-        .window { background: #121225; padding: 30px; border-radius: 25px; border: 4px solid var(--cyan); width: 85%; max-width: 400px; box-shadow: 0 0 50px #000; }
-        
-        .main-title { font-size: 20px; color: var(--gold); margin: 0; font-weight: bold; }
-        .sub-title { font-size: 16px; color: #fff; margin: 5px 0 20px 0; }
-        
-        .btn { padding: 18px; font-size: 20px; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #000; margin-top: 15px; width: 100%; box-shadow: 0 5px 15px rgba(255,215,0,0.4); }
-        .shop-btn { background: var(--cyan); }
+        #hud { position: fixed; top: 0; width: 100%; padding: 10px; display: flex; justify-content: space-around; z-index: 100; background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--gold); }
+        .stat-card { background: var(--glass); padding: 5px 15px; border-radius: 15px; border: 1px solid var(--gold); }
 
+        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); z-index: 1000; text-align: center; }
+        .window { background: #0a0a1a; padding: 25px; border-radius: 30px; border: 3px solid var(--cyan); width: 85%; max-width: 400px; box-shadow: 0 0 50px #000; }
+        
+        .btn { padding: 15px; font-size: 18px; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #000; margin-top: 10px; width: 100%; box-shadow: 0 5px 15px rgba(255,215,0,0.4); }
+        
         #dist-track { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 70%; height: 8px; background: #222; border-radius: 10px; border: 1px solid var(--cyan); overflow: hidden; }
-        #bar-fill { width: 0%; height: 100%; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); }
+        #bar-fill { width: 0%; height: 100%; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); transition: 0.2s; }
     </style>
 </head>
 <body>
 
 <div id="hud">
-    <div class="stat-card">GOLD: <span id="gold-val">0</span></div>
-    <div class="stat-card">STAGE: <span id="stage-val">1</span></div>
+    <div class="stat-card">🟡 <span id="gold-val">0</span></div>
+    <div class="stat-card">🏆 STAGE: <span id="stage-val">1</span></div>
 </div>
 
 <div id="dist-track"><div id="bar-fill"></div></div>
 
 <div id="main-overlay" class="overlay">
     <div class="window">
-        <div class="main-title">CAT ADVENTURE TO SURVIVE</div>
-        <div class="sub-title">مغامرة القطة للنجاة من الوحوش</div>
+        <div style="color: var(--gold); font-weight: bold;" id="m-en">CAT ADVENTURE TO SURVIVE</div>
+        <div style="font-size: 14px;" id="m-ar">مغامرة القطة للنجاة من الوحوش</div>
         
-        <button class="btn" id="action-btn" onclick="startGame()">START GAME / ابدأ اللعب</button>
-        <button class="btn shop-btn" onclick="toggleShop(true)">ROYAL SHOP / المتجر الملكي</button>
-    </div>
-</div>
+        <div id="rank-box" class="leaderboard" style="display:none;">
+            <div style="border-bottom: 1px solid var(--gold); margin-bottom: 5px;">TOP PLAYERS / ترتيب اللاعبين</div>
+            <div id="rank-list"></div>
+        </div>
 
-<div id="shop-overlay" class="overlay" style="display:none">
-    <div class="window" style="border-color: var(--gold);">
-        <h2 style="color: var(--gold);">SHOP / المتجر</h2>
-        <p>Coming Soon / قريباً</p>
-        <button class="btn" onclick="toggleShop(false)">START GAME / ابدأ اللعب</button>
+        <button class="btn" id="action-btn" onclick="startGame()">START GAME / ابدأ اللعب</button>
     </div>
 </div>
 
@@ -57,15 +54,16 @@
 const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
 let active = false, stage = 1, gold = 0, distance = 0, targetDist = 3000;
 let frame = 0, stars = [], obs = [], coins = [], caveX = -1000;
-let lastObsX = 0; // لمنع تداخل الأعمدة
+let lastObsX = 0;
 
-let p = { x: 100, y: 0, v: 0, g: 0.45, j: -9 };
-let wolf = { x: -200, y: 0 };
+let p = { x: 100, y: 0, v: 0, g: 0.45, j: -9, legAngle: 0 };
+let monster = { x: -200, y: 0, type: "🐺" };
+const monsterTypes = ["🐺", "👹", "🐲", "👾", "🦁", "🦇", "🦂", "🐍", "🦍", "🐘"];
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audio;
 
-function playSfx(freq, type, dur, vol=0.3) { // رفعنا القوة لـ 0.3
+function playSfx(freq, type, dur, vol=0.3) {
     if(!audio) audio = new AudioCtx();
     if(audio.state === 'suspended') audio.resume();
     const o = audio.createOscillator(), g = audio.createGain();
@@ -81,18 +79,13 @@ window.onresize = resize; resize();
 
 for(let i=0; i<60; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2});
 
-function toggleShop(show) {
-    document.getElementById('shop-overlay').style.display = show ? 'flex' : 'none';
-    if(!show) startGame();
-}
-
 function startGame() {
     active = false;
     obs = []; coins = []; distance = 0; caveX = -1000; lastObsX = 0;
     p.y = canvas.height / 2; p.v = 0;
+    monster.type = monsterTypes[(stage - 1) % monsterTypes.length];
     targetDist = 2500 + (stage * 1000);
     document.getElementById('main-overlay').style.display = 'none';
-    document.getElementById('shop-overlay').style.display = 'none';
     active = true;
     animate();
 }
@@ -100,64 +93,88 @@ function startGame() {
 window.onmousedown = () => { if(active) { p.v = p.j; playSfx(450, 'square', 0.15); } };
 window.ontouchstart = (e) => { if(active) { p.v = p.j; playSfx(450, 'square', 0.15); } e.preventDefault(); };
 
-function drawCat(x, y) {
+function draw3DCat(x, y) {
     ctx.save(); ctx.translate(x, y);
-    ctx.fillStyle = "#FDF5E6"; ctx.beginPath(); ctx.ellipse(0, 0, 25, 18, 0, 0, 7); ctx.fill();
-    ctx.fillStyle = "#3E2723"; ctx.beginPath(); ctx.arc(22, -8, 10, 0, 7); ctx.fill();
-    ctx.fillStyle = "#00E5FF"; ctx.beginPath(); ctx.arc(25, -10, 2, 0, 7); ctx.fill();
+    p.legAngle += 0.2;
+    
+    // الأرجل (تتحرك)
+    ctx.strokeStyle = "#3E2723"; ctx.lineWidth = 4;
+    for(let i of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(i*10, 10);
+        ctx.lineTo(i*10 + Math.sin(p.legAngle)*10, 25);
+        ctx.stroke();
+    }
+
+    // جسم القطة (تأثير 3D بسيط بالظلال)
+    let grad = ctx.createRadialGradient(-5, -5, 5, 0, 0, 25);
+    grad.addColorStop(0, "#fff"); grad.addColorStop(1, "#FDF5E6");
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.ellipse(0, 0, 30, 20, 0, 0, Math.PI*2); ctx.fill();
+
+    // العيون اللامعة
+    ctx.fillStyle = "#3E2723"; ctx.beginPath(); ctx.arc(22, -8, 12, 0, 7); ctx.fill();
+    ctx.shadowBlur = 15; ctx.shadowColor = var(--cyan);
+    ctx.fillStyle = var(--cyan); ctx.beginPath(); ctx.arc(26, -10, 3, 0, 7); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+}
+
+function draw3DMonster(x, y) {
+    ctx.save();
+    ctx.shadowBlur = 20; ctx.shadowColor = "red";
+    ctx.font = "80px Arial";
+    // تأثير طبقات لجعل الوحش يبدو أضخم
+    ctx.globalAlpha = 0.3; ctx.fillText(monster.type, x-5, y+5);
+    ctx.globalAlpha = 1.0; ctx.fillText(monster.type, x, y);
     ctx.restore();
 }
 
 function animate() {
     if(!active) return;
-    ctx.fillStyle = "#020205"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#020208"; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "white";
-    stars.forEach(s => { s.x -= 0.5; if(s.x < 0) s.x = canvas.width; ctx.fillRect(s.x, s.y, s.r, s.r); });
+    stars.forEach(s => { s.x -= 0.5; if(s.x < 0) s.x = canvas.width; ctx.fillStyle="#fff"; ctx.fillRect(s.x, s.y, s.r, s.r); });
 
     p.v += p.g; p.y += p.v;
     distance += 6;
     document.getElementById('bar-fill').style.width = Math.min(100, (distance/targetDist)*100) + "%";
 
-    drawCat(p.x, p.y);
-    wolf.x = p.x - 160 + Math.sin(Date.now()*0.005)*20;
-    wolf.y += (p.y - wolf.y) * 0.05;
-    ctx.font = "60px Arial"; ctx.fillText("🐺", wolf.x, wolf.y + 20);
+    draw3DCat(p.x, p.y);
+    monster.x = p.x - 170 + Math.sin(Date.now()*0.005)*25;
+    monster.y += (p.y - monster.y) * 0.05;
+    draw3DMonster(monster.x, monster.y + 20);
 
-    // الكوينز
     if(Math.random() < 0.02) coins.push({x: canvas.width, y: Math.random()*canvas.height});
     coins.forEach((c, i) => {
-        c.x -= 6; ctx.fillStyle = "gold"; ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, 7); ctx.fill();
-        if(Math.hypot(p.x-c.x, p.y-c.y) < 40) { 
-            coins.splice(i,1); gold+=50; playSfx(1200, 'sine', 0.2, 0.4);
-            document.getElementById('gold-val').innerText = gold; 
-        }
+        c.x -= 6; ctx.fillStyle = "gold"; ctx.shadowBlur=10; ctx.shadowColor="gold";
+        ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, 7); ctx.fill(); ctx.shadowBlur=0;
+        if(Math.hypot(p.x-c.x, p.y-c.y) < 40) { coins.splice(i,1); gold+=50; playSfx(1200, 'sine', 0.2); document.getElementById('gold-val').innerText = gold; }
     });
 
-    // الحواجز (منع التداخل)
     if(distance > 500 && distance < targetDist - 800) {
-        if(canvas.width - lastObsX > 300) { // شرط المسافة بين الأعمدة
+        if(canvas.width - lastObsX > 350) {
             if(Math.random() < 0.03) {
-                let h = Math.random()*(canvas.height-280);
-                let col = `hsl(${(stage*75)%360}, 80%, 50%)`;
+                let h = Math.random()*(canvas.height-300);
+                let col = `hsl(${(stage*80)%360}, 80%, 50%)`;
                 obs.push({x: canvas.width, y: 0, h: h, c: col});
-                obs.push({x: canvas.width, y: h+230, h: canvas.height, c: col});
+                obs.push({x: canvas.width, y: h+240, h: canvas.height, c: col});
                 lastObsX = canvas.width;
             }
         }
     }
     obs.forEach((o, i) => {
-        o.x -= (6 + stage*0.5);
+        o.x -= (6 + stage*0.4);
         if(o === obs[obs.length-1]) lastObsX = o.x; 
-        ctx.fillStyle = o.c; ctx.fillRect(o.x, o.y, 60, o.h);
-        if(p.x+20 > o.x && p.x-20 < o.x+60 && p.y+15 > o.y && p.y-15 < o.y+o.h) end(false);
+        ctx.fillStyle = o.c; ctx.fillRect(o.x, o.y, 50, o.h);
+        if(p.x+20 > o.x && p.x-20 < o.x+50 && p.y+15 > o.y && p.y-15 < o.y+o.h) end(false);
     });
 
     if(distance >= targetDist) {
         if(caveX === -1000) caveX = canvas.width;
         caveX -= 6;
-        ctx.fillStyle = "#444"; ctx.fillRect(caveX, p.y-70, 120, 100);
-        if(p.x > caveX + 60) end(true);
+        ctx.fillStyle = "#333"; ctx.fillRect(caveX, p.y-80, 140, 120);
+        if(p.x > caveX + 70) end(true);
     }
 
     if(p.y > canvas.height || p.y < 0) end(false);
@@ -167,24 +184,42 @@ function animate() {
 function end(win) {
     active = false;
     const ov = document.getElementById('main-overlay');
-    const t1 = ov.querySelector('.main-title');
-    const t2 = ov.querySelector('.sub-title');
+    const tEn = document.getElementById('m-en');
+    const tAr = document.getElementById('m-ar');
     const btn = document.getElementById('action-btn');
 
+    document.getElementById('rank-box').style.display = 'block';
+    updateLeaderboard();
+
     if(win) {
-        t1.innerText = "STAGE " + stage + " CLEARED";
-        t2.innerText = "نجحت بتجاوز المرحلة " + stage;
-        t1.style.color = "var(--gold)";
-        btn.innerText = "START NEXT STAGE / ابدأ اللعب";
+        tEn.innerText = "STAGE " + stage + " CLEARED";
+        tAr.innerText = "نجحت بتجاوز المرحلة " + stage;
+        tEn.style.color = "var(--gold)";
+        btn.innerText = "NEXT STAGE / ابدأ اللعب";
         stage++;
     } else {
-        t1.innerText = "YOU LOST";
-        t2.innerText = "لقد التهمك الوحش الجائع";
-        t1.style.color = "var(--red)";
+        tEn.innerText = "YOU LOST";
+        tAr.innerText = "لقد التهمك الوحش الجائع";
+        tEn.style.color = "var(--red)";
         btn.innerText = "TRY AGAIN / اعد المحاولة";
     }
     document.getElementById('stage-val').innerText = stage;
     ov.style.display = 'flex';
+}
+
+function updateLeaderboard() {
+    const names = ["KingCat", "Speedy", "Himalayan_Fan", "CatLover", "Shadow"];
+    let listHTML = "";
+    let myRank = Math.floor(Math.random() * 5) + 1; // محاكاة رتبة اللاعب
+    
+    names.forEach((name, i) => {
+        let isMe = (i + 1 === myRank);
+        listHTML += `<div class="rank-item ${isMe ? 'me' : ''}">
+            <span>${i+1}. ${isMe ? 'انت (You)' : name}</span>
+            <span>${isMe ? gold : (5000 - i*1000)} pts</span>
+        </div>`;
+    });
+    document.getElementById('rank-list').innerHTML = listHTML;
 }
 </script>
 </body>
