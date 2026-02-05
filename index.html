@@ -3,43 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Cat: World Legend</title>
+    <title>Himalayan Legend: The Shop Edition</title>
     <style>
-        :root { --gold: #FFD700; --cyan: #00F2FF; }
-        body { margin: 0; background: #020205; overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; }
+        :root { --gold: #FFD700; --cyan: #00F2FF; --red: #ff4444; }
+        body { margin: 0; background: #020205; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; color: white; }
         
-        /* HUD - واجهة المعلومات العالمية */
-        #hud { position: fixed; top: 0; width: 100%; padding: 20px; display: flex; justify-content: space-around; z-index: 100; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); }
-        .stat-item { background: rgba(255,255,255,0.05); padding: 10px 25px; border-radius: 50px; border: 1px solid var(--gold); font-weight: 900; }
+        /* واجهة HUD */
+        #hud { position: fixed; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-around; z-index: 100; background: rgba(0,0,0,0.6); border-bottom: 2px solid var(--gold); }
+        .stat-card { background: rgba(255,255,255,0.1); padding: 8px 20px; border-radius: 15px; border: 1px solid var(--gold); font-weight: bold; }
 
-        /* شريط المسافة (نظام الداونلود الفخم) */
-        #dist-track { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; z-index: 100; }
-        #bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 5px; border: 1px solid var(--cyan); overflow: hidden; }
-        #bar-fill { width: 0%; height: 100%; background: var(--cyan); box-shadow: 0 0 20px var(--cyan); transition: 0.1s; }
+        /* شاشة الرسائل والقوائم */
+        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; text-align: center; display: none; }
+        .window { background: #121225; padding: 30px; border-radius: 25px; border: 3px solid var(--gold); width: 85%; max-width: 400px; box-shadow: 0 0 30px rgba(0,0,0,1); }
+        .btn { padding: 12px 40px; font-size: 20px; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #000; margin-top: 15px; width: 100%; }
+        
+        /* المتجر */
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .shop-item { background: #1a1a35; padding: 10px; border-radius: 10px; border: 1px solid #444; font-size: 13px; }
+        .price { color: var(--gold); font-weight: bold; display: block; margin-top: 5px; }
 
-        /* واجهة الانطلاق العالمية */
-        #overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); z-index: 1000; text-align: center; }
-        .window { background: #121225; padding: 40px; border-radius: 30px; border: 4px solid var(--gold); box-shadow: 0 0 50px rgba(0,0,0,1); }
-        .play-btn { padding: 20px 80px; font-size: 28px; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #000; transition: 0.3s; box-shadow: 0 0 30px var(--gold); }
+        /* شريط المسافة */
+        #dist-track { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80%; z-index: 100; }
+        #bar-bg { width: 100%; height: 8px; background: #222; border-radius: 10px; border: 1px solid var(--cyan); overflow: hidden; }
+        #bar-fill { width: 0%; height: 100%; background: var(--cyan); box-shadow: 0 0 15px var(--cyan); }
+
+        #open-shop { position: fixed; bottom: 80px; left: 20px; background: var(--gold); color: #000; padding: 15px; border-radius: 50%; font-weight: bold; cursor: pointer; border: 3px solid #fff; z-index: 500; }
     </style>
 </head>
 <body>
 
 <div id="hud">
-    <div class="stat-item">GOLD: <span id="gold-val">0</span></div>
-    <div class="stat-item">STAGE: <span id="stage-val">1</span></div>
+    <div class="stat-card">🟡 <span id="gold-val">0</span></div>
+    <div class="stat-card">🏆 STAGE: <span id="stage-val">1</span></div>
 </div>
 
 <div id="dist-track">
-    <div style="font-size: 14px; font-weight: bold; color: var(--cyan);">DISTANCE TO CAVE: <span id="percent-val">0%</span></div>
     <div id="bar-bg"><div id="bar-fill"></div></div>
 </div>
 
-<div id="overlay">
+<div id="open-shop" onclick="showShop()">SHOP</div>
+
+<div id="menu-overlay" class="overlay" style="display: flex;">
     <div class="window">
-        <h1 id="title" style="font-size: 3rem; color: var(--gold); margin: 0;">HIMALAYAN CAT</h1>
-        <p id="desc" style="opacity: 0.7; margin-bottom: 30px;">Professional Global Edition</p>
-        <button class="play-btn" id="start-btn" onclick="initLevel()">START MISSION</button>
+        <h1 id="menu-title" style="color: var(--gold);">HIMALAYAN CAT</h1>
+        <p id="menu-desc">Professional Global Edition</p>
+        <button class="btn" onclick="initLevel()">START MISSION</button>
+    </div>
+</div>
+
+<div id="shop-overlay" class="overlay">
+    <div class="window">
+        <h2 style="color: var(--cyan);">متجر القطط الملكي</h2>
+        <div class="shop-grid">
+            <div class="shop-item">😺 الهملايا التقليدية <span class="price">مجانًا</span> <button onclick="selectCat(0)" style="width:100%">اختيار</button></div>
+            <div class="shop-item">🐱 قطة سيامية (سريعة) <span class="price">500 🟡</span> <button onclick="buyCat(1, 500)" style="width:100%">شراء</button></div>
+            <div class="shop-item">🦁 القطة الملكية <span class="price">1500 🟡</span> <button onclick="buyCat(2, 1500)" style="width:100%">شراء</button></div>
+            <div class="shop-item">🛡️ درع الحماية <span class="price">300 🟡</span> <button onclick="buyItem('shield', 300)" style="width:100%">شراء</button></div>
+        </div>
+        <button class="btn" style="background: #666; color: white;" onclick="hideShop()">إغلاق</button>
     </div>
 </div>
 
@@ -47,13 +68,11 @@
 
 <script>
 const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
-let active = false, frame = 0, stage = 1, gold = 0, distance = 0, targetDist = 4000;
+let active = false, stage = 1, gold = 0, distance = 0, targetDist = 4000;
+let frame = 0, selectedCat = 0, hasShield = false;
+let ownedCats = [0];
 
-let p = { x: 120, y: 0, v: 0, g: 0.45, j: -9 };
-let wolf = { x: -200, y: 0 };
-let obs = [], coins = [], stars = [], caveX = -1000;
-
-// نظام الصوت العالمي
+// نظام الصوت
 const audio = new (window.AudioContext || window.webkitAudioContext)();
 function sfx(f, t, d) {
     const o = audio.createOscillator(), g = audio.createGain();
@@ -64,14 +83,27 @@ function sfx(f, t, d) {
     o.start(); o.stop(audio.currentTime + d);
 }
 
+let p = { x: 120, y: 0, v: 0, g: 0.45, j: -9 };
+let wolf = { x: -200, y: 0 };
+let obs = [], coins = [], stars = [], caveX = -1000;
+
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.onresize = resize; resize();
-for(let i=0; i<80; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2});
+for(let i=0; i<60; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2});
+
+function showShop() { active = false; document.getElementById('shop-overlay').style.display = 'flex'; }
+function hideShop() { document.getElementById('shop-overlay').style.display = 'none'; active = true; if(frame>0) update(); }
+
+function buyCat(id, price) {
+    if(gold >= price) { gold -= price; ownedCats.push(id); document.getElementById('gold-val').innerText = gold; alert("مبروك! امتلكت قطة جديدة."); }
+    else alert("الذهب غير كافٍ!");
+}
+
+function selectCat(id) { if(ownedCats.includes(id)) { selectedCat = id; alert("تم اختيار الشخصية!"); } else alert("يجب شراؤها أولاً!"); }
 
 function initLevel() {
-    document.getElementById('overlay').style.display = 'none';
-    p.y = canvas.height/2;
-    distance = 0; obs = []; coins = []; caveX = -1000;
+    document.getElementById('menu-overlay').style.display = 'none';
+    p.y = canvas.height/2; distance = 0; obs = []; coins = []; caveX = -1000;
     targetDist = 3000 + (stage * 1000);
     active = true;
     if(frame === 0) update();
@@ -82,8 +114,13 @@ window.ontouchstart = (e) => { if(active) { p.v = p.j; sfx(200, 'square', 0.2); 
 
 function drawCat(x, y) {
     ctx.save(); ctx.translate(x, y);
-    ctx.fillStyle = "#FDF5E6"; ctx.beginPath(); ctx.ellipse(0, 0, 30, 20, 0, 0, 7); ctx.fill();
-    ctx.fillStyle = "#3E2723"; ctx.beginPath(); ctx.moveTo(15, -18); ctx.lineTo(20, -35); ctx.lineTo(25, -18); ctx.fill();
+    // تغيير الألوان بناءً على الشخصية المختارة
+    let bodyColor = "#FDF5E6", faceColor = "#3E2723"; 
+    if(selectedCat === 1) { bodyColor = "#D3D3D3"; faceColor = "#000"; }
+    if(selectedCat === 2) { bodyColor = "#FFD700"; faceColor = "#B8860B"; }
+
+    ctx.fillStyle = bodyColor; ctx.beginPath(); ctx.ellipse(0, 0, 30, 20, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = faceColor; ctx.beginPath(); ctx.moveTo(15,-18); ctx.lineTo(20,-35); ctx.lineTo(25,-18); ctx.fill();
     ctx.beginPath(); ctx.arc(28, -10, 10, 0, 7); ctx.fill();
     ctx.fillStyle = "#00E5FF"; ctx.beginPath(); ctx.arc(32, -12, 3, 0, 7); ctx.fill();
     ctx.restore();
@@ -94,15 +131,12 @@ function update() {
     frame++;
     ctx.fillStyle = "#020205"; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // النجوم والمسافة
     ctx.fillStyle = "white";
     stars.forEach(s => { s.x -= 0.5; if(s.x < 0) s.x = canvas.width; ctx.fillRect(s.x, s.y, s.r, s.r); });
     
     p.v += p.g; p.y += p.v;
     distance += 6;
-    let prog = Math.min(100, (distance/targetDist)*100);
-    document.getElementById('bar-fill').style.width = prog + "%";
-    document.getElementById('percent-val').innerText = Math.floor(prog) + "%";
+    document.getElementById('bar-fill').style.width = Math.min(100, (distance/targetDist)*100) + "%";
 
     drawCat(p.x, p.y);
     wolf.x = p.x - 180 + Math.sin(frame*0.05)*30;
@@ -110,32 +144,28 @@ function update() {
     ctx.font = "70px Arial"; ctx.fillText("🐺", wolf.x, wolf.y + 20);
 
     // الكوينز
-    if(frame % 70 == 0 && distance < targetDist - 500) coins.push({x: canvas.width, y: Math.random()*canvas.height});
+    if(frame % 70 == 0) coins.push({x: canvas.width, y: Math.random()*canvas.height});
     coins.forEach((c, i) => {
         c.x -= 6; ctx.fillStyle = "gold"; ctx.beginPath(); ctx.arc(c.x, c.y, 12, 0, 7); ctx.fill();
         if(Math.hypot(p.x-c.x, p.y-c.y) < 45) { coins.splice(i,1); gold+=50; sfx(1000, 'sine', 0.1); document.getElementById('gold-val').innerText = gold; }
     });
 
-    // الحواجز (تنطلق بعد مسافة أمان)
+    // الحواجز
     if(frame % 100 == 0 && distance > 600 && distance < targetDist - 800) {
         let h = Math.random()*(canvas.height-300)+50;
-        let color = `hsl(${(stage*70)%360}, 80%, 50%)`;
-        obs.push({x: canvas.width, y: 0, h: h, c: color});
-        obs.push({x: canvas.width, y: h+250, h: canvas.height, c: color});
+        obs.push({x: canvas.width, y: 0, h: h, c: `hsl(${(stage*70)%360}, 80%, 50%)`});
+        obs.push({x: canvas.width, y: h+250, h: canvas.height, c: `hsl(${(stage*70)%360}, 80%, 50%)`});
     }
     obs.forEach((o, i) => {
         o.x -= (6 + stage*0.5);
-        ctx.fillStyle = o.c; ctx.shadowBlur = 15; ctx.shadowColor = o.c;
-        ctx.fillRect(o.x, o.y, 60, o.h); ctx.shadowBlur = 0;
+        ctx.fillStyle = o.c; ctx.fillRect(o.x, o.y, 60, o.h);
         if(p.x+25 > o.x && p.x-25 < o.x+60 && p.y+15 > o.y && p.y-15 < o.y+o.h) die();
     });
 
-    // الكهف في النهاية
     if(distance >= targetDist) {
         if(caveX === -1000) caveX = canvas.width;
         caveX -= 6;
         ctx.fillStyle = "#444"; ctx.fillRect(caveX, p.y-80, 150, 120);
-        ctx.fillStyle = "#000"; ctx.beginPath(); ctx.ellipse(caveX+75, p.y-10, 40, 50, 0, 0, 7); ctx.fill();
         if(p.x > caveX + 80) win();
     }
 
@@ -145,15 +175,19 @@ function update() {
 
 function win() {
     active = false;
-    document.getElementById('overlay').style.display = 'flex';
-    document.getElementById('title').innerText = "STAGE " + stage + " CLEAR!";
-    document.getElementById('desc').innerText = "القطة في أمان داخل الكهف";
-    stage++;
-    document.getElementById('stage-val').innerText = stage;
-    document.getElementById('start-btn').innerText = "START STAGE " + stage;
+    const m = document.getElementById('menu-overlay'); m.style.display = 'flex';
+    document.getElementById('menu-title').innerText = "نجحت المهمة!";
+    document.getElementById('menu-desc').innerText = "القطة بسلام في الكهف، استعد للمرحلة " + (stage+1);
+    stage++; document.getElementById('stage-val').innerText = stage;
 }
 
-function die() { alert("GAME OVER! Try again for the cats."); location.reload(); }
+function die() {
+    active = false;
+    const m = document.getElementById('menu-overlay'); m.style.display = 'flex';
+    document.getElementById('menu-title').style.color = "red";
+    document.getElementById('menu-title').innerText = "لقد التهمك الوحش!";
+    document.getElementById('menu-desc').innerText = "يا للأسف.. القطط تنتظرك، لا تستسلم!";
+}
 </script>
 </body>
 </html>
