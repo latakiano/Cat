@@ -3,66 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Cat: Royal Survival</title>
+    <title>Cat Adventures: The Masterpiece</title>
     <style>
-        :root { --gold: #FFD700; --cyan: #00F2FF; --red: #ff3333; --dark: #0a0a1a; }
-        body { margin: 0; background: #010105; overflow: hidden; font-family: 'Segoe UI', Arial; touch-action: none; color: white; }
+        :root { --gold: #FFD700; --cyan: #00F2FF; --red: #ff3333; --dark: #070715; }
+        body { margin: 0; background: #010105; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; color: white; }
         
-        /* واجهة HUD */
-        #hud { position: fixed; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-around; z-index: 100; background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--gold); }
-        .stat-card { background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; border: 1px solid var(--gold); font-weight: bold; }
-        #dist-mini { position: fixed; top: 75px; right: 20px; font-size: 14px; color: var(--cyan); background: rgba(0,0,0,0.6); padding: 5px 12px; border-radius: 12px; border: 1px solid var(--cyan); z-index: 100; }
+        #top-header { position: fixed; top: 10px; width: 100%; text-align: center; color: var(--gold); font-weight: bold; font-size: 13px; z-index: 10; letter-spacing: 1.5px; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
 
-        /* الشاشات التفاعلية */
-        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.95); z-index: 1000; text-align: center; }
-        .window { background: var(--dark); padding: 25px; border-radius: 30px; border: 3px solid var(--cyan); width: 85%; max-width: 450px; box-shadow: 0 0 50px #000; }
+        #hud { position: fixed; top: 35px; width: 100%; padding: 10px; display: flex; justify-content: space-around; z-index: 100; pointer-events: none; }
+        .stat-card { background: rgba(0,0,0,0.6); padding: 6px 18px; border-radius: 20px; border: 1.5px solid var(--gold); font-size: 14px; box-shadow: inset 0 0 10px rgba(255,215,0,0.2); }
+
+        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.92); z-index: 1000; }
+        .window { background: var(--dark); padding: 30px; border-radius: 40px; border: 3px solid var(--cyan); width: 85%; max-width: 400px; text-align: center; box-shadow: 0 0 40px rgba(0,242,255,0.3); }
         
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
-        .cat-card { background: #161632; padding: 15px; border-radius: 20px; border: 1px solid #333; position: relative; }
-        .cat-card.active { border-color: var(--gold); background: #252550; }
+        .royal-title { color: var(--gold); font-size: 28px; font-weight: bold; margin: 0; text-shadow: 2px 2px #000; }
+        .sub-title { font-size: 14px; color: #888; margin-bottom: 25px; }
+
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .cat-card { background: #11112b; padding: 15px; border-radius: 25px; border: 2px solid #222; cursor: pointer; transition: 0.3s; }
+        .cat-card.active { border-color: var(--gold); background: #1a1a4a; transform: translateY(-5px); }
         
-        .btn { padding: 15px; font-size: 18px; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #000; width: 100%; transition: 0.3s; margin-top: 10px; }
-        .btn:hover { transform: scale(1.05); filter: brightness(1.2); }
-        .buy-btn { font-size: 14px; padding: 8px; margin-top: 5px; background: var(--cyan); }
+        .buy-btn { background: var(--cyan); border: none; padding: 10px; border-radius: 20px; width: 100%; font-weight: bold; margin-top: 10px; font-size: 12px; color: #000; }
+        
+        .start-btn { background: #ffff00; color: black; padding: 22px; border-radius: 60px; border: none; width: 85%; max-width: 350px; font-size: 24px; font-weight: 800; cursor: pointer; margin-top: 25px; transition: 0.2s; box-shadow: 0 8px 20px rgba(255,255,0,0.4); }
+        .start-btn:active { transform: scale(0.95); }
+
+        #dist-mini { position: fixed; top: 85px; right: 20px; font-size: 12px; color: var(--cyan); font-weight: bold; }
     </style>
 </head>
 <body>
+
+<div id="top-header">CAT ADVENTURES TO REACH THE CAVE FOR SURVIVAL</div>
 
 <div id="hud">
     <div class="stat-card">🟡 الذهب: <span id="gold-val">0</span></div>
     <div class="stat-card">🏆 المرحلة: <span id="stage-val">1</span></div>
 </div>
 
-<div id="dist-mini">🏁 التقدم: <span id="dist-prog">0</span>%</div>
+<div id="dist-mini">PROGRESS: <span id="dist-prog">0</span>%</div>
 
 <div id="main-overlay" class="overlay">
     <div class="window">
-        <h2 style="color: var(--gold); margin: 0;">ROYAL CAT SHOP</h2>
-        <p style="font-size: 14px;">المتجر الملكي - اختر قطتك المفضلة</p>
+        <h1 class="royal-title">ROYAL CAT SHOP</h1>
+        <p class="sub-title">المتجر الملكي - اختر قطتك المفضلة</p>
         
         <div class="shop-grid">
-            <div class="cat-card active" onclick="selectCat(0)">
-                <div style="font-size: 30px;">🐱</div>
-                <div style="font-size: 14px;">هملايا</div>
-                <button class="btn buy-btn">مفعل</button>
+            <div class="cat-card active" id="card-0" onclick="selectCat(0)">
+                <div style="font-size:35px">🐱</div>
+                <div style="font-size:13px; font-weight:bold;">هملايا</div>
+                <button class="buy-btn" id="btn-0">مفعل</button>
             </div>
-            <div class="cat-card" onclick="buyCat(1, 500)">
-                <div style="font-size: 30px;">🐈</div>
-                <div style="font-size: 14px;">سيامي</div>
-                <button class="btn buy-btn" id="cat-1-btn">500 🟡</button>
+            <div class="cat-card" id="card-1" onclick="buyCat(1, 500)">
+                <div style="font-size:35px">🐈</div>
+                <div style="font-size:13px; font-weight:bold;">سيامي</div>
+                <button class="buy-btn" id="btn-1">500 🟡</button>
             </div>
-            <div class="cat-card" onclick="buyCat(2, 1500)">
-                <div style="font-size: 30px;">🦁</div>
-                <div style="font-size: 14px;">الملكي</div>
-                <button class="btn buy-btn" id="cat-2-btn">1500 🟡</button>
+            <div class="cat-card" id="card-2" onclick="buyCat(2, 1500)">
+                <div style="font-size:35px">🦁</div>
+                <div style="font-size:13px; font-weight:bold;">الملكي</div>
+                <button class="buy-btn" id="btn-2">1500 🟡</button>
             </div>
             <div class="cat-card">
-                <div style="font-size: 20px; color: #666;">قريباً</div>
+                <div style="color:#444; font-size:14px; margin-top:15px; font-weight:bold;">قريباً</div>
             </div>
         </div>
-
-        <button class="btn" onclick="startGame()">START GAME / ابدأ اللعب</button>
     </div>
+    <button class="start-btn" onclick="startGame()">START GAME / ابدأ اللعب</button>
 </div>
 
 <canvas id="game"></canvas>
@@ -70,153 +76,150 @@
 <script>
 const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
 let active = false, stage = 1, gold = 0, distance = 0, targetDist = 4000;
-let frame = 0, obs = [], coins = [], boxes = [], caveX = -2000;
+let frame = 0, obs = [], boxes = [], caveX = -2000;
 let p = { x: 150, y: 0, v: 0, g: 0.5, j: -10, legA: 0, color: "#FFF" };
-let wolf = { x: -200, y: 0 };
-let ownedCats = [true, false, false];
-
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-let audio;
-
-function playSfx(freq, type, dur, vol=0.25) {
-    if(!audio) audio = new AudioCtx();
-    if(audio.state === 'suspended') audio.resume();
-    const o = audio.createOscillator(), g = audio.createGain();
-    o.type = type; o.connect(g); g.connect(audio.destination);
-    o.frequency.setValueAtTime(freq, audio.currentTime);
-    g.gain.setValueAtTime(vol, audio.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + dur);
-    o.start(); o.stop(audio.currentTime + dur);
-}
+let wolf = { x: -250, y: 0 };
+let owned = [true, false, false];
 
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.onresize = resize; resize();
 
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audio;
+function playSfx(f, t, d, v=0.25) {
+    if(!audio) audio = new AudioCtx();
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = t; o.connect(g); g.connect(audio.destination);
+    o.frequency.setValueAtTime(f, audio.currentTime);
+    g.gain.setValueAtTime(v, audio.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + d);
+    o.start(); o.stop(audio.currentTime + d);
+}
+
 function buyCat(id, price) {
-    if(ownedCats[id]) { selectCat(id); return; }
+    if(owned[id]) { selectCat(id); return; }
     if(gold >= price) {
-        gold -= price;
-        ownedCats[id] = true;
+        gold -= price; owned[id] = true;
         document.getElementById('gold-val').innerText = gold;
-        document.getElementById(`cat-${id}-btn`).innerText = "تم الشراء";
-        selectCat(id);
-        playSfx(800, 'sine', 0.3);
-    } else {
-        alert("الذهب لا يكفي! اجمع المزيد من الصناديق");
+        document.getElementById('btn-'+id).innerText = "تم الشراء";
+        selectCat(id); playSfx(900, 'sine', 0.4);
     }
 }
 
 function selectCat(id) {
-    if(!ownedCats[id]) return;
-    document.querySelectorAll('.cat-card').forEach((c, i) => {
-        c.classList.toggle('active', i === id);
-    });
-    p.color = (id === 0) ? "#FFF" : (id === 1) ? "#D2B48C" : "#FFD700";
+    if(!owned[id]) return;
+    for(let i=0; i<3; i++) document.getElementById('card-'+i)?.classList.toggle('active', i===id);
+    p.color = (id===0)?"#FFF":(id===1)?"#D2B48C":"#FFD700";
 }
 
 function startGame() {
-    active = false; obs = []; coins = []; boxes = []; distance = 0; caveX = -2000;
+    active = false; obs = []; boxes = []; distance = 0; caveX = -2000;
     p.y = canvas.height / 2; p.v = 0;
-    targetDist = 3000 + (stage * 1500); 
+    targetDist = 3500 + (stage * 1200);
     document.getElementById('main-overlay').style.display = 'none';
-    active = true;
-    animate();
+    active = true; animate();
 }
 
-window.onmousedown = () => { if(active) { p.v = p.j; playSfx(400, 'square', 0.15); } };
-window.ontouchstart = (e) => { if(active) { p.v = p.j; playSfx(400, 'square', 0.15); } e.preventDefault(); };
+window.onmousedown = () => { if(active) { p.v = p.j; playSfx(380, 'square', 0.12); } };
+window.ontouchstart = (e) => { if(active) { p.v = p.j; playSfx(380, 'square', 0.12); } e.preventDefault(); };
 
-function drawHimalayan(x, y) {
+function drawCat(x, y) {
     ctx.save(); ctx.translate(x, y);
-    p.legA += 0.3;
-    // الأرجل
+    p.legA += 0.28;
+    // الأرجل مع حركة انسيابية
     ctx.strokeStyle = "#3E2723"; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(-10, 10); ctx.lineTo(-10 + Math.sin(p.legA)*10, 25); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(10, 10); ctx.lineTo(10 + Math.cos(p.legA)*10, 25); ctx.stroke();
-    // الجسم
-    let g = ctx.createRadialGradient(0,0,5,0,0,25);
-    g.addColorStop(0, p.color); g.addColorStop(1, "#EEDCBB");
-    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0, 30, 20, 0, 0, 7); ctx.fill();
-    // الذيل
-    ctx.fillStyle = "#3E2723"; ctx.beginPath(); ctx.ellipse(-30, 0, 15, 8, Math.PI/4, 0, 7); ctx.fill();
-    // الرأس والعيون اللامعة
-    ctx.fillStyle = "#3E2723"; ctx.beginPath(); ctx.arc(22, -8, 12, 0, 7); ctx.fill();
-    ctx.fillStyle = var(--cyan); ctx.shadowBlur = 15; ctx.shadowColor = var(--cyan);
-    ctx.beginPath(); ctx.arc(26, -10, 3, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-8, 12); ctx.lineTo(-8 + Math.sin(p.legA)*12, 28); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(10, 12); ctx.lineTo(10 + Math.cos(p.legA)*12, 28); ctx.stroke();
+    // الجسم 3D
+    let g = ctx.createRadialGradient(-5,-5,5,0,0,25);
+    g.addColorStop(0, p.color); g.addColorStop(1, "#D2B48C");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0, 34, 24, 0, 0, 7); ctx.fill();
+    // الرأس والعيون
+    ctx.fillStyle = "#3E2723"; ctx.beginPath(); ctx.arc(26, -10, 15, 0, 7); ctx.fill();
+    ctx.fillStyle = "#00F2FF"; ctx.shadowBlur = 15; ctx.shadowColor = "#00F2FF";
+    ctx.beginPath(); ctx.arc(31, -12, 3.5, 0, 7); ctx.fill();
+    ctx.restore();
+}
+
+function drawCabin(x) {
+    let ground = canvas.height - 10;
+    ctx.save();
+    // الجدران الخشبية
+    ctx.fillStyle = "#5D4037"; ctx.fillRect(x, ground-160, 220, 160);
+    ctx.strokeStyle = "#3E2723"; ctx.lineWidth = 3; ctx.strokeRect(x, ground-160, 220, 160);
+    // السقف القرميدي
+    ctx.fillStyle = "#8D2424"; ctx.beginPath();
+    ctx.moveTo(x-30, ground-160); ctx.lineTo(x+110, ground-260); ctx.lineTo(x+250, ground-160); ctx.fill();
+    ctx.stroke();
+    // الباب الملكي
+    ctx.fillStyle = "#1a1a1a"; ctx.fillRect(x+80, ground-90, 60, 90);
+    ctx.fillStyle = "gold"; ctx.beginPath(); ctx.arc(x+130, ground-45, 4, 0, 7); ctx.fill();
     ctx.restore();
 }
 
 function animate() {
     if(!active) return;
     frame++;
-    ctx.fillStyle = "#020208"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#02020a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     p.v += p.g; p.y += p.v;
-    distance += 7;
+    distance += 8;
     document.getElementById('dist-prog').innerText = Math.min(100, Math.floor((distance/targetDist)*100));
 
-    drawHimalayan(p.x, p.y);
-    wolf.x = p.x - 180 + Math.sin(frame*0.05)*20;
-    wolf.y += (p.y - wolf.y) * 0.06;
-    ctx.font = "80px Arial"; ctx.fillText("🐺", wolf.x, wolf.y + 25);
+    drawCat(p.x, p.y);
+    wolf.x = p.x - 200 + Math.sin(frame*0.06)*30;
+    wolf.y += (p.y - wolf.y) * 0.08;
+    ctx.shadowBlur = 20; ctx.shadowColor = "red";
+    ctx.font = "90px Arial"; ctx.fillText("🐺", wolf.x, wolf.y + 30);
+    ctx.shadowBlur = 0;
 
-    // مربعات الذهب (صناديق طائرة)
-    if(frame % 180 == 0 && distance > 1000 && distance < targetDist - 1000) {
-        boxes.push({x: canvas.width, y: Math.random()*(canvas.height-100), w: 100, h: 50});
+    // صناديق الذهب الطائرة (حركة متموجة)
+    if(frame % 160 == 0 && distance > 1000 && distance < targetDist - 1500) {
+        boxes.push({x: canvas.width, y: 100 + Math.random()*(canvas.height-250), baseH: 0});
     }
     boxes.forEach((b, i) => {
-        b.x -= 7;
-        ctx.fillStyle = "rgba(255, 215, 0, 0.3)"; ctx.strokeStyle = "gold";
-        ctx.strokeRect(b.x, b.y, b.w, b.h);
-        ctx.fillStyle = "white"; ctx.font = "bold 14px Arial"; ctx.fillText("GOLD BOX", b.x+15, b.y+30);
-        if(p.x+20 > b.x && p.x-20 < b.x+b.w && p.y+20 > b.y && p.y-20 < b.y+b.h) {
-            boxes.splice(i,1); gold += 150; playSfx(1200, 'sine', 0.2);
+        b.x -= 8; b.baseH = Math.sin(frame*0.05)*20;
+        ctx.fillStyle = "rgba(255,215,0,0.4)"; ctx.strokeStyle = "gold"; ctx.lineWidth = 2;
+        ctx.strokeRect(b.x, b.y + b.baseH, 100, 50);
+        ctx.fillStyle = "white"; ctx.font = "bold 13px Arial"; ctx.fillText("ROYAL GOLD", b.x+10, b.y+b.baseH+30);
+        if(p.x+25 > b.x && p.x-25 < b.x+100 && p.y+20 > b.y+b.baseH && p.y-20 < b.y+b.baseH+50) {
+            boxes.splice(i,1); gold += 150; playSfx(1300, 'sine', 0.2);
             document.getElementById('gold-val').innerText = gold;
         }
     });
 
-    // الحواجز (صعبة ومنظمة)
-    if(frame % 75 == 0 && distance > 1000 && distance < targetDist - 1200) {
-        let h = Math.random()*(canvas.height-320);
-        obs.push({x: canvas.width, y: 0, h: h, c: `hsl(${(stage*130)%360}, 80%, 50%)`});
-        obs.push({x: canvas.width, y: h+210, h: canvas.height, c: `hsl(${(stage*130)%360}, 80%, 50%)`});
+    // الحواجز (بوابات الطاقة)
+    if(frame % 80 == 0 && distance > 1200 && distance < targetDist - 1200) {
+        let h = 100 + Math.random()*(canvas.height-400);
+        let color = `hsl(${(stage*140)%360}, 85%, 50%)`;
+        obs.push({x: canvas.width, y: 0, h: h, c: color});
+        obs.push({x: canvas.width, y: h+200, h: canvas.height, c: color});
     }
     obs.forEach((o, i) => {
-        o.x -= (7 + stage*0.4);
+        o.x -= (8 + stage*0.5);
+        ctx.shadowBlur = 10; ctx.shadowColor = o.c;
         ctx.fillStyle = o.c; ctx.fillRect(o.x, o.y, 50, o.h);
-        if(p.x+20 > o.x && p.x-20 < o.x+50 && p.y+15 > o.y && p.y-15 < o.y+o.h) end(false);
+        ctx.shadowBlur = 0;
+        if(p.x+22 > o.x && p.x-22 < o.x+50 && p.y+18 > o.y && p.y-18 < o.y+o.h) endGame(false);
     });
 
-    // الكوخ الأرضي الجميل (النهاية)
+    // الكوخ الأرضي عند النهاية
     if(distance >= targetDist) {
         if(caveX === -2000) caveX = canvas.width;
-        caveX -= 7;
-        // رسم أرضية الكوخ
-        ctx.fillStyle = "#1a1a1a"; ctx.fillRect(caveX, canvas.height-150, 250, 150);
-        ctx.fillStyle = "#4a3b22"; ctx.fillRect(caveX+25, canvas.height-130, 200, 130); // جدران
-        ctx.fillStyle = "brown"; ctx.beginPath(); // سقف
-        ctx.moveTo(caveX, canvas.height-130); ctx.lineTo(caveX+125, canvas.height-220); ctx.lineTo(caveX+250, canvas.height-130); ctx.fill();
-        ctx.fillStyle = "#000"; ctx.fillRect(caveX+90, canvas.height-80, 70, 80); // الباب
-        
-        if(p.x > caveX + 100 && p.y > canvas.height-200) end(true);
+        caveX -= 8;
+        drawCabin(caveX);
+        if(p.x > caveX + 90 && p.y > canvas.height-200) endGame(true);
     }
 
-    if(p.y > canvas.height || p.y < 0) end(false);
+    if(p.y > canvas.height || p.y < 0) endGame(false);
     requestAnimationFrame(animate);
 }
 
-function end(win) {
+function endGame(win) {
     active = false;
     const ov = document.getElementById('main-overlay');
-    const btn = ov.querySelector('.btn');
-    if(win) {
-        ov.querySelector('h2').innerText = "STAGE " + stage + " COMPLETED";
-        btn.innerText = "START STAGE " + (stage+1) + " / ابدأ اللعب";
-        stage++;
-    } else {
-        ov.querySelector('h2').innerText = "YOU LOST / التهمك الوحش";
-        btn.innerText = "TRY AGAIN / اعد المحاولة";
-    }
+    ov.querySelector('h1').innerText = win ? "VICTORY: STAGE "+stage : "GAME OVER";
+    if(win) { stage++; playSfx(600, 'sine', 0.5); } else { playSfx(150, 'sawtooth', 0.4); }
     document.getElementById('stage-val').innerText = stage;
     ov.style.display = 'flex';
 }
