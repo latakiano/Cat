@@ -3,140 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Legends: Global Edition</title>
+    <title>Himalayan Cat: The Journey Home</title>
     <style>
-        :root { --gold: #FFD700; --accent: #00F2FF; }
-        body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; }
-        
-        /* واجهة عالمية احترافية */
-        #ui { 
-            position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%); z-index: 1000; color: white;
-        }
-        .title { font-size: 3rem; font-weight: 900; color: var(--gold); text-shadow: 0 0 30px var(--gold); margin: 0; letter-spacing: 2px; }
-        .btn { 
-            margin-top: 40px; padding: 18px 80px; font-size: 24px; background: var(--gold); 
-            border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #000;
-            box-shadow: 0 0 25px rgba(255, 215, 0, 0.4); transition: 0.3s;
-        }
-        .btn:hover { transform: scale(1.1); box-shadow: 0 0 40px var(--gold); }
-
-        #stats { 
-            position: absolute; top: 0; width: 100%; display: none; justify-content: space-around; 
-            padding: 15px; background: rgba(0,0,0,0.6); border-bottom: 2px solid var(--gold); z-index: 100;
-        }
-        .stat-item { color: white; font-size: 1.2rem; font-weight: bold; border: 1px solid var(--gold); padding: 5px 15px; border-radius: 10px; }
+        :root { --gold: #ffd700; --snow: #f0f0f0; }
+        body { margin: 0; background: #050510; overflow: hidden; font-family: 'Arial', sans-serif; touch-action: none; }
+        #game-ui { position: fixed; top: 10px; width: 100%; display: flex; justify-content: space-around; z-index: 50; color: white; font-weight: bold; pointer-events: none; }
+        .bar-container { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80%; height: 10px; background: rgba(255,255,255,0.2); border-radius: 5px; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: var(--gold); transition: 0.1s; }
+        #menu { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: var(--gold); }
+        .btn { padding: 15px 60px; font-size: 22px; background: var(--gold); border: none; border-radius: 30px; cursor: pointer; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-<div id="ui">
-    <h1 class="title">HIMALAYAN CAT</h1>
-    <p id="sub-title" style="color: var(--accent); margin-top: 10px; font-weight: bold;">World Pursuit 2026</p>
-    <button class="btn" id="start-btn" onclick="startGame()">START</button>
+<div id="game-ui">
+    <div>Stage: <span id="stg-val">1</span></div>
+    <div>Gold: <span id="gld-val">0</span></div>
+</div>
+<div class="bar-container"><div id="progress-bar"></div></div>
+
+<div id="menu">
+    <h1 style="font-size: 35px;">HIMALAYAN CAT 2026</h1>
+    <p>Help the cat reach the Hut!</p>
+    <button class="btn" onclick="start()">START GAME</button>
 </div>
 
-<div id="stats">
-    <div class="stat-item" id="lvl-ui">Stage: 1</div>
-    <div class="stat-item" id="gld-ui">Gold: 0</div>
-</div>
-
-<canvas id="gameCanvas"></canvas>
+<canvas id="c"></canvas>
 
 <script>
-// --- نظام الترجمة العالمي الذكي ---
-const i18n = {
-    'ar': { start: "ابدأ المغامرة", die: "أمسك بك الذئب!", lvl: "المرحلة", gld: "الذهب" },
-    'en': { start: "START ADVENTURE", die: "The Wolf Caught You!", lvl: "Level", gld: "Gold" },
-    'fr': { start: "COMMENCER", die: "Le Loup t'a attrapé!", lvl: "Niveau", gld: "Or" },
-    'pt': { start: "INICIAR JOGO", die: "O Lobo te pegou!", lvl: "Nível", gld: "Ouro" },
-    'es': { start: "EMPEZAR", die: "¡Atrapado!", lvl: "Nivel", gld: "Oro" }
-};
-const userLang = navigator.language.split('-')[0];
-const lang = i18n[userLang] || i18n['en'];
-document.getElementById('start-btn').innerText = lang.start;
+const cvs = document.getElementById('c'), ctx = cvs.getContext('2d');
+let active = false, stage = 1, gold = 0, distance = 0, maxDist = 3000;
+let frame = 0;
 
-// --- محرك اللعبة المصحح ---
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-let active = false, stage = 1, gold = 0, frame = 0;
+// إعدادات القطة (الهملايا: بيضاء مع أذنين داكنة)
+let p = { x: 100, y: 0, v: 0, g: 0.5, j: -8, w: 60, h: 45, speedX: 2 };
+let wolf = { x: -200, y: 0 };
+let obs = [], hut = { x: -1000, y: 0, show: false };
 
-let cat = { x: 120, y: 0, v: 0, g: 0.5, j: -10, w: 50, h: 40 };
-let wolf = { x: -250, y: 0, w: 120, h: 70 }; // يبدأ بعيداً ليعطيك فرصة
-let obstacles = [];
-
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+function resize() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
 window.onresize = resize; resize();
 
-function startGame() {
-    document.getElementById('ui').style.display = 'none';
-    document.getElementById('stats').style.display = 'flex';
-    cat.y = canvas.height / 2;
-    wolf.y = cat.y;
+function start() {
+    document.getElementById('menu').style.display = 'none';
+    p.y = cvs.height / 2;
     active = true;
-    update();
+    requestAnimationFrame(loop);
 }
 
-window.onmousedown = () => { if(active) cat.v = cat.j; };
-window.ontouchstart = (e) => { if(active) cat.v = cat.j; e.preventDefault(); };
+// اللمس يزيد السرعة (Impulse Physics)
+window.onmousedown = () => { if(active) { p.v = p.j; p.speedX = Math.min(8, p.speedX + 0.5); } };
+window.ontouchstart = (e) => { if(active) { p.v = p.j; p.speedX = Math.min(8, p.speedX + 0.5); } e.preventDefault(); };
 
-function update() {
+function drawCat(x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    // جسم القطة (هملايا بيضاء)
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath(); ctx.ellipse(0, 0, 25, 18, 0, 0, Math.PI*2); ctx.fill();
+    // الرأس والأذنين الداكنة
+    ctx.beginPath(); ctx.arc(20, -10, 12, 0, 7); ctx.fill();
+    ctx.fillStyle = "#4b3621"; // لون الأذن بني داكن (هملايا)
+    ctx.beginPath(); ctx.moveTo(15, -18); ctx.lineTo(18, -30); ctx.lineTo(22, -18); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(25, -18); ctx.lineTo(28, -30); ctx.lineTo(31, -18); ctx.fill();
+    ctx.restore();
+}
+
+function drawHut(x, y) {
+    ctx.fillStyle = "#8b4513"; // جدران الكوخ
+    ctx.fillRect(x, y - 60, 100, 80);
+    ctx.fillStyle = "#ff4500"; // السقف
+    ctx.beginPath(); ctx.moveTo(x - 20, y - 60); ctx.lineTo(x + 50, y - 110); ctx.lineTo(x + 120, y - 60); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.font = "20px Arial"; ctx.fillText("FINISH", x + 20, y - 30);
+}
+
+function loop() {
     if(!active) return;
-    ctx.fillStyle = '#050508'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050510"; ctx.fillRect(0, 0, cvs.width, cvs.height);
 
-    // فيزياء القطة (تطير للأمام)
-    cat.v += cat.g; cat.y += cat.v;
+    // الفيزياء
+    p.v += p.g; p.y += p.v;
+    p.speedX = Math.max(2, p.speedX - 0.02); // تباطؤ طبيعي
+    distance += p.speedX;
+    
+    // ملاحقة الذئب (خلف القطة دائماً بمسافة)
+    wolf.y += (p.y - wolf.y) * 0.05;
+    wolf.x = p.x - 150 + (Math.sin(frame*0.05) * 20);
 
-    // حركة الذئب (ملاحقة ذكية)
-    wolf.y += (cat.y - wolf.y) * 0.05;
-    wolf.x += (0.5 + stage * 0.2); 
-    // ضمان بقاء الذئب خلف القطة دائماً إلا لو تعثرت
-    if (wolf.x > cat.x - 70) wolf.x = cat.x - 70;
+    // شريط التقدم
+    let progress = (distance / maxDist) * 100;
+    document.getElementById('progress-bar').style.width = Math.min(100, progress) + "%";
 
-    // رسم القطة 🐈
-    ctx.font = "45px Arial";
-    ctx.fillText("🐈", cat.x, cat.y + 15);
+    // رسم القطة والذئب
+    drawCat(p.x, p.y);
+    ctx.font = "60px Arial"; ctx.fillText("🐺", wolf.x, wolf.y + 20);
 
-    // رسم الذئب 🐺
-    ctx.font = "65px Arial";
-    ctx.fillText("🐺", wolf.x, wolf.y + 25);
-
-    // العوائق (أعمدة نيون زرقاء)
-    frame++;
-    if(frame % 110 === 0) {
-        let gap = 250 - (stage * 5);
-        let h = Math.random() * (canvas.height - gap - 100) + 50;
-        obstacles.push({x: canvas.width, y: 0, w: 60, h: h});
-        obstacles.push({x: canvas.width, y: h + gap, w: 60, h: canvas.height});
+    // العوائق (الدهاليز)
+    if(frame % 100 == 0 && distance < maxDist - 500) {
+        let h = Math.random() * (cvs.height - 300) + 100;
+        obs.push({x: cvs.width, y: 0, h: h});
+        obs.push({x: cvs.width, y: h + 220, h: cvs.height});
     }
 
-    obstacles.forEach((o, i) => {
-        o.x -= (5 + stage);
-        ctx.fillStyle = '#00F2FF'; ctx.shadowBlur = 15; ctx.shadowColor = '#00F2FF';
-        ctx.fillRect(o.x, o.y, o.w, o.h);
-        ctx.shadowBlur = 0;
-
-        // تصادم دقيق جداً
-        if(cat.x + 30 > o.x && cat.x < o.x + o.w && (cat.y - 15 < o.y + o.h && cat.y + 15 > o.y)) die();
-        if(o.x < -100) { 
-            obstacles.splice(i, 1); 
-            if(i % 2 === 0) { gold += 10; document.getElementById('gld-ui').innerText = lang.gld + ": " + gold; }
-        }
+    obs.forEach((o, i) => {
+        o.x -= p.speedX;
+        ctx.fillStyle = "#00d2ff"; ctx.fillRect(o.x, o.y, 60, o.h);
+        if(p.x+20 > o.x && p.x-20 < o.x+60 && (p.y-15 < o.y+o.h && p.y+15 > o.y)) die();
+        if(o.x < -100) obs.splice(i, 1);
     });
 
-    // شروط الخسارة
-    if(cat.y > canvas.height || cat.y < 0) die();
-    // إذا لمست القطة الذئب
-    if(cat.x < wolf.x + 80) die();
+    // نهاية المرحلة (الكوخ)
+    if(distance >= maxDist && !hut.show) { hut.show = true; hut.x = cvs.width; hut.y = p.y; }
+    if(hut.show) {
+        hut.x -= p.speedX;
+        drawHut(hut.x, hut.y);
+        if(p.x > hut.x) { nextStage(); }
+    }
 
-    if(frame % 1500 === 0) { stage++; document.getElementById('lvl-ui').innerText = lang.lvl + ": " + stage; }
-    
-    requestAnimationFrame(update);
+    if(p.y > cvs.height || p.y < 0 || p.x < wolf.x + 50) die();
+    frame++;
+    requestAnimationFrame(loop);
 }
 
-function die() {
-    active = false; alert(lang.die); location.reload();
+function nextStage() {
+    active = false; stage++; distance = 0; hut.show = false; obs = [];
+    alert("Great! Stage " + stage + " is starting!");
+    document.getElementById('stg-val').innerText = stage;
+    maxDist += 1000;
+    active = true; loop();
 }
+
+function die() { active = false; alert("The wolf caught you! Try again."); location.reload(); }
 </script>
 </body>
 </html>
