@@ -3,26 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Himalayan Adventure - Real Animation</title>
+    <title>Himalayan Cat: The Cave Escape</title>
     <style>
         :root { --gold: #FFD700; --cyan: #00F2FF; --red: #ff3333; }
-        body { margin: 0; background: #050510; overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; }
+        body { margin: 0; background: #010105; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; touch-action: none; color: white; }
         
-        /* عداد المسافة الصغير في الزاوية */
-        #dist-mini { position: fixed; top: 70px; right: 20px; font-size: 12px; color: var(--cyan); background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 10px; border: 1px solid var(--cyan); z-index: 100; }
-
-        #hud { position: fixed; top: 0; width: 100%; padding: 10px; display: flex; justify-content: space-around; z-index: 100; background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--gold); }
+        #hud { position: fixed; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-around; z-index: 100; background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--gold); }
         .stat-card { background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 15px; border: 1px solid var(--gold); font-weight: bold; }
 
-        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(10,10,25,0.95); z-index: 1000; text-align: center; }
-        .window { background: #121225; padding: 25px; border-radius: 25px; border: 3px solid var(--gold); width: 85%; max-width: 400px; }
+        #dist-mini { position: fixed; top: 75px; right: 20px; font-size: 14px; color: var(--cyan); background: rgba(0,0,0,0.6); padding: 5px 12px; border-radius: 12px; border: 1px solid var(--cyan); z-index: 100; font-weight: bold; }
+
+        .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); z-index: 1000; text-align: center; }
+        .window { background: #0d0d1f; padding: 30px; border-radius: 25px; border: 3px solid var(--gold); width: 85%; max-width: 400px; box-shadow: 0 0 50px #000; }
         
-        .main-title { font-size: 20px; color: var(--gold); font-weight: bold; margin-bottom: 5px; }
-        .sub-title { font-size: 14px; margin-bottom: 20px; }
+        .main-title { font-size: 22px; color: var(--gold); margin: 0; font-weight: bold; text-transform: uppercase; }
+        .sub-title { font-size: 16px; color: #fff; margin: 5px 0 20px 0; }
         
-        .btn { padding: 18px; font-size: 18px; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #000; margin-top: 10px; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .item { background: #1a1a35; padding: 15px; border-radius: 15px; border: 1px solid #444; }
+        .btn { padding: 18px; font-size: 19px; background: var(--gold); border: none; border-radius: 50px; cursor: pointer; font-weight: bold; color: #000; margin-top: 15px; width: 100%; transition: 0.2s; }
+        .btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
@@ -32,19 +30,14 @@
     <div class="stat-card">المرحلة: <span id="stage-val">1</span></div>
 </div>
 
-<div id="dist-mini">DISTANCE: <span id="dist-val">0</span>m</div>
+<div id="dist-mini">🏁 الهدف: <span id="dist-val">0</span>/100</div>
 
 <div id="main-overlay" class="overlay">
     <div class="window">
-        <div class="main-title">CAT ADVENTURE TO SURVIVE</div>
-        <div class="sub-title">مغامرة القطة للنجاة من الوحوش</div>
-        
-        <div class="shop-grid">
-            <div class="item">🐱 هملايا<br><button class="btn" style="padding:5px; font-size:12px;">اختيار</button></div>
-            <div class="item">🐱 سيامي<br><span style="color:gold">500🟡</span><button class="btn" style="padding:5px; font-size:12px;">شراء</button></div>
-        </div>
-
-        <button class="btn" id="action-btn" onclick="startGame()">START / ابدأ اللعب</button>
+        <div class="main-title" id="m-title-en">CAT ADVENTURE</div>
+        <div class="sub-title" id="m-title-ar">مغامرة القطة للنجاة من الوحوش</div>
+        <p id="m-desc" style="font-size: 14px; color: #ccc;">ساعد القطة للوصول للكهف بسلام</p>
+        <button class="btn" id="action-btn" onclick="startGame()">START GAME / ابدأ اللعب</button>
     </div>
 </div>
 
@@ -52,133 +45,148 @@
 
 <script>
 const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
-let active = false, stage = 1, gold = 0, distance = 0, targetDist = 3000;
-let frame = 0, obs = [], coins = [], stars = [];
-let p = { x: 120, y: 0, v: 0, g: 0.45, j: -9, legAngle: 0 };
+let active = false, stage = 1, gold = 0, distance = 0, targetDist = 2000;
+let frame = 0, obs = [], coins = [], stars = [], caveX = -1000;
+let p = { x: 130, y: 0, v: 0, g: 0.45, j: -9, legA: 0 };
 let wolf = { x: -200, y: 0 };
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audio;
 
-function playSound(f, t, d, v=0.4) {
+function playSfx(freq, type, dur, vol=0.2) {
     if(!audio) audio = new AudioCtx();
+    if(audio.state === 'suspended') audio.resume();
     const o = audio.createOscillator(), g = audio.createGain();
-    o.type = t; o.connect(g); g.connect(audio.destination);
-    o.frequency.setValueAtTime(f, audio.currentTime);
-    g.gain.setValueAtTime(v, audio.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + d);
-    o.start(); o.stop(audio.currentTime + d);
+    o.type = type; o.connect(g); g.connect(audio.destination);
+    o.frequency.setValueAtTime(freq, audio.currentTime);
+    g.gain.setValueAtTime(vol, audio.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + dur);
+    o.start(); o.stop(audio.currentTime + dur);
 }
 
 function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.onresize = resize; resize();
 
-for(let i=0; i<70; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*1.5});
+for(let i=0; i<60; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2});
 
 function startGame() {
-    active = false; distance = 0; obs = []; coins = [];
+    active = false;
+    obs = []; coins = []; distance = 0; caveX = -1000; frame = 0;
     p.y = canvas.height / 2; p.v = 0;
+    targetDist = 1500 + (stage * 1000); // المسافة تزيد مع كل مرحلة
     document.getElementById('main-overlay').style.display = 'none';
     active = true;
     animate();
 }
 
-window.onmousedown = () => { if(active) { p.v = p.j; playSound(350, 'triangle', 0.2); } };
-window.ontouchstart = (e) => { if(active) { p.v = p.j; playSound(350, 'triangle', 0.2); } e.preventDefault(); };
+window.onmousedown = () => { if(active) { p.v = p.j; playSfx(400, 'square', 0.15); } };
+window.ontouchstart = (e) => { if(active) { p.v = p.j; playSfx(400, 'square', 0.15); } e.preventDefault(); };
 
-function drawHimalayan(x, y) {
+function drawCat(x, y) {
     ctx.save(); ctx.translate(x, y);
-    p.legAngle += 0.25;
-    
-    // الأرجل المتحركة
+    p.legA += 0.2;
+    // الأرجل
     ctx.strokeStyle = "#3E2723"; ctx.lineWidth = 4;
-    for(let i of [-12, 8]) {
-        ctx.beginPath();
-        ctx.moveTo(i, 10);
-        ctx.lineTo(i + Math.sin(p.legAngle)*8, 22);
-        ctx.stroke();
-    }
-
-    // الجسم والفراء
+    ctx.beginPath(); ctx.moveTo(-10, 10); ctx.lineTo(-10 + Math.sin(p.legA)*8, 22); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(10, 10); ctx.lineTo(10 + Math.cos(p.legA)*8, 22); ctx.stroke();
+    // الجسم
     let g = ctx.createRadialGradient(0,0,5,0,0,25);
-    g.addColorStop(0, "#FFF"); g.addColorStop(1, "#EEDCBB");
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.ellipse(0, 0, 30, 18, 0, 0, 7); ctx.fill();
-
-    // الذيل الكثيف
-    ctx.fillStyle = "#D2B48C";
-    ctx.beginPath(); ctx.ellipse(-30, 0, 15, 8, Math.PI/4 + Math.sin(p.legAngle)*0.2, 0, 7); ctx.fill();
-
-    // الرأس والعيون اللامعة
-    ctx.fillStyle = "#3E2723"; ctx.beginPath(); ctx.arc(22, -8, 11, 0, 7); ctx.fill();
+    g.addColorStop(0, "#fff"); g.addColorStop(1, "#EEDCBB");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0, 30, 20, 0, 0, 7); ctx.fill();
+    // الذيل
+    ctx.fillStyle = "#D2B48C"; ctx.beginPath(); ctx.ellipse(-32, 0, 15, 8, Math.PI/4, 0, 7); ctx.fill();
+    // الرأس والعيون
+    ctx.fillStyle = "#3E2723"; ctx.beginPath(); ctx.arc(22, -8, 12, 0, 7); ctx.fill();
     ctx.fillStyle = "#00F2FF"; ctx.shadowBlur = 10; ctx.shadowColor = "#00F2FF";
-    ctx.beginPath(); ctx.arc(26, -10, 2.5, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(26, -10, 3, 0, 7); ctx.fill();
     ctx.restore();
 }
 
 function drawWolf(x, y) {
     ctx.save(); ctx.translate(x, y);
-    let wWalk = Math.sin(Date.now()*0.008)*5;
-    
-    // جسم الذئب (مستوحى من الفيديو)
-    ctx.fillStyle = "#444";
-    ctx.beginPath(); ctx.ellipse(0, wWalk, 45, 20, 0, 0, 7); ctx.fill();
-    
-    // الرأس والعين الحمراء
-    ctx.beginPath(); ctx.moveTo(35, -5+wWalk); ctx.lineTo(65, 5+wWalk); ctx.lineTo(35, 15+wWalk); ctx.fill();
+    let wAnim = Math.sin(Date.now()*0.005)*5;
+    ctx.fillStyle = "#333"; ctx.beginPath(); ctx.ellipse(0, wAnim, 45, 22, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(35, -5+wAnim); ctx.lineTo(65, 5+wAnim); ctx.lineTo(35, 18+wAnim); ctx.fill();
     ctx.fillStyle = "red"; ctx.shadowBlur = 15; ctx.shadowColor = "red";
-    ctx.beginPath(); ctx.arc(45, 2+wWalk, 4, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(45, 2+wAnim, 4, 0, 7); ctx.fill();
     ctx.restore();
 }
 
 function animate() {
     if(!active) return;
-    ctx.fillStyle = "#020208"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    frame++;
+    ctx.fillStyle = "#020205"; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     stars.forEach(s => { s.x -= 0.5; if(s.x < 0) s.x = canvas.width; ctx.fillStyle="#fff"; ctx.fillRect(s.x, s.y, s.r, s.r); });
 
     p.v += p.g; p.y += p.v;
-    distance += 5;
-    document.getElementById('dist-val').innerText = Math.floor(distance/10);
+    distance += 6;
+    let progress = Math.min(100, Math.floor((distance / targetDist) * 100));
+    document.getElementById('dist-val').innerText = progress;
 
-    drawHimalayan(p.x, p.y);
-    wolf.x = p.x - 180 + Math.sin(Date.now()*0.003)*25;
-    wolf.y += (p.y - wolf.y) * 0.05;
+    drawCat(p.x, p.y);
+    wolf.x = p.x - 175 + Math.sin(frame*0.04)*20;
+    wolf.y += (p.y - wolf.y) * 0.06;
     drawWolf(wolf.x, wolf.y);
 
     // الكوينز
-    if(Math.random() < 0.02) coins.push({x: canvas.width, y: Math.random()*canvas.height});
+    if(frame % 70 == 0) coins.push({x: canvas.width, y: Math.random()*canvas.height});
     coins.forEach((c, i) => {
-        c.x -= 6; ctx.fillStyle = "gold"; ctx.shadowBlur=15; ctx.shadowColor="gold";
-        ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, 7); ctx.fill(); ctx.shadowBlur=0;
-        if(Math.hypot(p.x-c.x, p.y-c.y) < 40) { 
-            coins.splice(i,1); gold+=50; 
-            playSound(1000, 'sine', 0.2);
-            document.getElementById('gold-val').innerText = gold; 
-        }
+        c.x -= 6; ctx.fillStyle = "gold"; ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, 7); ctx.fill();
+        if(Math.hypot(p.x-c.x, p.y-c.y) < 40) { coins.splice(i,1); gold+=50; playSfx(1000, 'sine', 0.1); document.getElementById('gold-val').innerText = gold; }
     });
 
-    // الحواجز
-    if(frame % 100 == 0 && distance < targetDist - 800) {
-        let h = Math.random()*(canvas.height-300);
-        obs.push({x: canvas.width, y: 0, h: h, c: `hsl(${(stage*90)%360}, 70%, 50%)`});
-        obs.push({x: canvas.width, y: h+250, h: canvas.height, c: `hsl(${(stage*90)%360}, 70%, 50%)`});
+    // الحواجز (تظهر فقط قبل النهاية بمسافة)
+    if(frame % 90 == 0 && distance < targetDist - 1000) {
+        let h = Math.random()*(canvas.height-280);
+        let col = `hsl(${(stage*100)%360}, 70%, 50%)`;
+        obs.push({x: canvas.width, y: 0, h: h, c: col});
+        obs.push({x: canvas.width, y: h+230, h: canvas.height, c: col});
     }
     obs.forEach((o, i) => {
         o.x -= (6 + stage*0.3);
-        ctx.fillStyle = o.c; ctx.fillRect(o.x, o.y, 50, o.h);
-        if(p.x+20 > o.x && p.x-20 < o.x+50 && p.y+15 > o.y && p.y-15 < o.y+o.h) end(false);
+        ctx.fillStyle = o.c; ctx.fillRect(o.x, o.y, 55, o.h);
+        if(p.x+20 > o.x && p.x-20 < o.x+55 && p.y+15 > o.y && p.y-15 < o.y+o.h) end(false);
     });
 
+    // الكهف (يظهر في النهاية)
+    if(distance >= targetDist) {
+        if(caveX === -1000) caveX = canvas.width;
+        caveX -= 6;
+        // رسم الكهف
+        ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(caveX+70, p.y, 80, 0, 7); ctx.fill();
+        ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(caveX+70, p.y, 50, 0, 7); ctx.fill();
+        ctx.fillStyle = "#gold"; ctx.font = "20px Arial"; ctx.fillText("EXIT", caveX+50, p.y-90);
+        
+        if(p.x > caveX + 60) end(true);
+    }
+
     if(p.y > canvas.height || p.y < 0) end(false);
-    frame++;
     requestAnimationFrame(animate);
 }
 
 function end(win) {
     active = false;
-    document.getElementById('main-overlay').style.display = 'flex';
-    document.getElementById('action-btn').innerText = "TRY AGAIN / اعد المحاولة";
+    const ov = document.getElementById('main-overlay');
+    const tEn = document.getElementById('m-title-en');
+    const tAr = document.getElementById('m-title-ar');
+    const desc = document.getElementById('m-desc');
+    const btn = document.getElementById('action-btn');
+
+    if(win) {
+        tEn.innerText = "STAGE " + stage + " CLEARED";
+        tAr.innerText = "نجحت بتجاوز المرحلة " + stage;
+        desc.innerText = "القطة وصلت للكهف بسلام، هل أنت مستعد للتالي؟";
+        btn.innerText = "START NEXT STAGE / ابدأ اللعب";
+        stage++;
+    } else {
+        tEn.innerText = "GAME OVER";
+        tAr.innerText = "لقد التهمك الوحش الجائع";
+        desc.innerText = "لا تستسلم، القطة تعتمد عليك!";
+        btn.innerText = "TRY AGAIN / اعد المحاولة";
+    }
+    document.getElementById('stage-val').innerText = stage;
+    ov.style.display = 'flex';
 }
 </script>
 </body>
